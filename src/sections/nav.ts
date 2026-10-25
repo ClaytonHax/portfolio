@@ -17,11 +17,11 @@ const LINKS = [
   { label: 'Contact', target: '#contact', sections: ['contact'] },
 ]
 
-/** Cursive "Clayton Banks" as a static filled SVG (currentColor). Falls back to Clayton, then plain text. */
+/** Cursive "Clayton" as a static filled SVG (currentColor). Falls back to plain text. */
 function wordmark(): string {
   const g = glyphsJson as unknown as Record<string, GlyphSet | undefined>
-  const set = g.Name ?? g.Clayton
-  if (!set) return '<span class="nav__name-txt">Clayton Banks</span>'
+  const set = g.Clayton
+  if (!set) return '<span class="nav__name-txt">Clayton</span>'
   const [x, y, w, h] = set.box
   const pad = 4
   return `<svg class="nav__name" viewBox="${x - pad} ${y - pad} ${w + pad * 2} ${h + pad * 2}" aria-hidden="true" focusable="false">${set.paths
