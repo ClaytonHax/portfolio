@@ -27,7 +27,7 @@ export const projects: Project[] = [
   {
     id: 'sabine',
     title: 'SABINE',
-    tagline: 'A local AI agent that runs entirely offline on Apple Silicon.',
+    tagline: 'A local AI agent that runs entirely offline on your own computer.',
     description:
       'Smart Agentic Build & Integration Neural Engine. A hand-written Python/MLX chat app and agent running quantised Qwen3 weights on the M3 GPU — no API key, no data leaves the machine. Optional online mode hands the same conversation to any frontier model through OpenRouter.',
     highlights: [

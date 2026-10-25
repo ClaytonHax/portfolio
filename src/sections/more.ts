@@ -21,12 +21,13 @@ export function initMore(): void {
         ${rest
           .map(
             (p, i) => `
-          <button type="button" class="tile glass rvc" style="--i:${i % 4}" data-id="${p.id}" data-cat="${p.category}" aria-label="${p.title}: open case study">
+          <button type="button" class="tile glass rvc" style="--i:${i % 4}" data-id="${p.id}" data-cat="${p.category}">
             ${projectImage(p, '(min-width: 769px) 26vw, 92vw')}
             <span class="tile__body">
               <span class="tile__top"><span class="eyebrow">${p.category}</span><span class="eyebrow">${p.year}</span></span>
               <span class="tile__title">${p.title}</span>
               <span class="tile__tag">${p.tagline}</span>
+              <span class="sr-only">, open case study</span>
             </span>
           </button>`,
           )

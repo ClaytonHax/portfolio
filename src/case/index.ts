@@ -106,8 +106,6 @@ export function initCase(): void {
     const next = projects[(i + 1) % projects.length]
     prevBtn.dataset.id = prev.id
     nextBtn.dataset.id = next.id
-    prevBtn.setAttribute('aria-label', `Previous project: ${prev.title}`)
-    nextBtn.setAttribute('aria-label', `Next project: ${next.title}`)
     prevBtn.innerHTML = `${ICON.prev}<span class="case__step-text"><small>Previous</small><b>${esc(prev.title)}</b></span>`
     nextBtn.innerHTML = `<span class="case__step-text"><small>Next</small><b>${esc(next.title)}</b></span>${ICON.next}`
   }

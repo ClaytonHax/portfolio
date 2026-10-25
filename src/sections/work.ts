@@ -53,14 +53,16 @@ export function initWork(): void {
     reveal(item, { stop: item.dataset.penStop })
     shine(card)
 
-    const open = (from: HTMLElement) => emit('case:open', { id, from })
-    card.querySelector<HTMLButtonElement>('[data-open]')!.addEventListener('click', (e) => {
+    // Open from the button: it's both the expand origin and where focus returns on close.
+    const btn = card.querySelector<HTMLButtonElement>('[data-open]')!
+    const open = () => emit('case:open', { id, from: btn })
+    btn.addEventListener('click', (e) => {
       e.stopPropagation()
-      open(card)
+      open()
     })
     card.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).closest('a, button')) return
-      open(card)
+      open()
     })
 
     if (finePointer && !reducedMotion) {

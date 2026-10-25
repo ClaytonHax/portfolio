@@ -56,11 +56,11 @@
   --pen-glow: 170, 185, 255;
 
   --text: #f2f4ff;
-  --text-dim: #b9bfd6;
+  --text-dim: #c9cee2;
   --text-faint: #8a90a8;
 
   --glass-text: #f2f4ff;
-  --glass-dim: #c3c8dc;
+  --glass-dim: #d2d6e8;
   --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04));
   --glass-border: rgba(255, 255, 255, 0.16);
   --glass-shine: rgba(160, 180, 255, 0.35);
@@ -77,8 +77,8 @@
 }
 
 :root {
-  --font-sans: 'Geist', -apple-system, 'Helvetica Neue', Arial, sans-serif;
-  --font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans: 'Geist Variable', 'Geist', -apple-system, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
   /* type scale (fluid) */
   --step--1: clamp(0.8rem, 0.78rem + 0.1vw, 0.875rem);
