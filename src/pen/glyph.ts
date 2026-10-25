@@ -20,7 +20,7 @@ export interface GlyphSet {
   paths: GlyphPath[]
   box: [number, number, number, number]
 }
-export const GLYPHS = data as unknown as Record<'Clayton' | 'phrase' | 'CB', GlyphSet>
+export const GLYPHS = data as unknown as Record<'Clayton' | 'Banks' | 'Name' | 'CB', GlyphSet>
 
 /** Geometry of one glyph outline in glyph units. Measured once; independent of layout. */
 export interface Metric {

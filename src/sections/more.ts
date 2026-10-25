@@ -7,22 +7,22 @@ import { projectImage, sectionHead, shine } from './ui'
 export function initMore(): void {
   const sec = document.getElementById('more')
   if (!sec) return
-  const rest = projects.filter((p) => p.tier !== 'flagship')
+  const rest = projects.filter((p) => p.tier === 'more')
   const order: ProjectCategory[] = ['Web App', 'Simulation', 'Tool', 'Website', 'AI']
   const cats = order.filter((c) => rest.some((p) => p.category === c))
 
   sec.innerHTML = `
     <div class="container sec-in">
-      ${sectionHead('03', 'More', 'More work', 'more-title', 'Smaller builds, client sites and experiments.')}
+      ${sectionHead('05', 'More things I\'ve made', 'Smaller builds, same care.', 'more-title', 'Client sites, tools and experiments.')}
       <div class="filters" role="group" aria-label="Filter projects by category">
         ${['All', ...cats].map((c, i) => `<button type="button" class="filter" data-cat="${c}" aria-pressed="${i === 0}">${c}</button>`).join('')}
       </div>
-      <div class="tiles rvg" data-pen-stop="more" data-pen-side="through">
+      <div class="tiles rvg" data-pen-stop="more" data-pen-side="right" data-pen-side-mobile="through">
         ${rest
           .map(
             (p, i) => `
           <button type="button" class="tile glass rvc" style="--i:${i % 4}" data-id="${p.id}" data-cat="${p.category}">
-            ${projectImage(p, '(min-width: 769px) 26vw, 92vw')}
+            ${projectImage(p, '(min-width: 1024px) 30vw, (min-width: 769px) 44vw, 92vw')}
             <span class="tile__body">
               <span class="tile__top"><span class="eyebrow">${p.category}</span><span class="eyebrow">${p.year}</span></span>
               <span class="tile__title">${p.title}</span>

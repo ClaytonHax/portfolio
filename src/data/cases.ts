@@ -128,16 +128,6 @@ export const cases: Record<string, CaseStudy> = {
     result: 'Live as an installable PWA.',
   },
 
-  site19: {
-    summary: 'A top-down simulation of a containment breach where every agent runs its own AI. You watch the facility fall apart.',
-    built: [
-      'A 104 by 70 tile facility laid out procedurally in three zones.',
-      'Separate behaviour for D-Class, MTF squads and each anomaly, with a keycard economy, checkpoints and dropped loot.',
-      'The whole thing is one self-contained HTML file with no dependencies.',
-    ],
-    result: 'Runs by opening the file. A side project made for fun.',
-  },
-
   'cook-a-levels': {
     summary: 'Topical past-paper practice for Cambridge A Level Mathematics, Physics and Computer Science.',
     built: [
@@ -176,29 +166,9 @@ export const cases: Record<string, CaseStudy> = {
     result: 'Live.',
   },
 
-  yearbook: {
-    summary: 'A nomination and live results site for a school yearbook committee.',
-    built: [
-      'A nomination flow across twelve categories.',
-      'A results dashboard that updates in real time.',
-      'Rebuilt from two plain HTML files into a typed React app.',
-    ],
-    result: 'Code on GitHub.',
-  },
-
   'circuit-vault': {
     summary: 'A searchable reference for electronics components and sensors, with example code for Arduino projects.',
     built: ['A sensor and component database.', 'An example sketch and wiring notes for each part.'],
     result: 'A plain HTML, CSS and JavaScript site.',
-  },
-
-  mysmartschool: {
-    summary: 'A student dashboard with a homework planner, grades, timetable and exam countdowns, plus an AI study helper.',
-    built: [
-      'A daily study goal, grade tracker and timetable.',
-      'An AI chat helper, and a Homework Helper that gives hints from a photo of the question instead of the answer.',
-      'Plain static files and ES modules, no build step.',
-    ],
-    result: 'Static site.',
   },
 }

@@ -148,25 +148,6 @@ export const projects: Project[] = [
     accent: '#ff4d4d',
   },
   {
-    id: 'site19',
-    title: 'Site-19 Breach Monitor',
-    tagline: 'A top-down SCP containment-breach simulation where every agent has its own AI.',
-    description:
-      "Watch a facility fall apart. D-Class hunt for keycards, MTF Epsilon-11 sweep zones, SCP-049's zombies spread, and the anomalies run their own behaviour across a procedurally laid-out three-zone site.",
-    highlights: [
-      '104×70 tile, three-zone procedural facility',
-      'Independent AI for every faction and SCP',
-      'Keycard economy, checkpoints and dropped loot',
-      'One self-contained HTML file, no dependencies',
-    ],
-    stack: ['JavaScript', 'Canvas 2D', 'Game AI'],
-    category: 'Simulation',
-    tier: 'featured',
-    year: 2026,
-    image: '/shots/site19.webp',
-    accent: '#ff3b3b',
-  },
-  {
     id: 'cook-a-levels',
     title: 'Cook Your A Levels',
     tagline: 'Topical past-paper practice for Cambridge A Level Maths, Physics and CS.',
@@ -235,21 +216,6 @@ export const projects: Project[] = [
     accent: '#e5252a',
   },
   {
-    id: 'yearbook',
-    title: 'Yearbook Voting',
-    tagline: 'Live nominations and a results dashboard for a school yearbook.',
-    description:
-      'Students nominate across twelve categories; a live dashboard tallies results in real time. Rebuilt from two HTML files into a typed React app.',
-    highlights: ['12-category nomination flow', 'Real-time results dashboard'],
-    stack: ['React', 'TypeScript', 'Firebase', 'Vite'],
-    category: 'Web App',
-    tier: 'more',
-    year: 2026,
-    repo: 'https://github.com/ClaytonHax/YearbookVoting',
-    image: '/shots/yearbook.webp',
-    accent: '#ff3b3b',
-  },
-  {
     id: 'circuit-vault',
     title: 'CIRCUIT//VAULT',
     tagline: 'An electronics and Arduino component reference hub.',
@@ -261,20 +227,6 @@ export const projects: Project[] = [
     tier: 'more',
     year: 2026,
     image: '/shots/circuit-vault.webp',
-    accent: '#ff3b3b',
-  },
-  {
-    id: 'mysmartschool',
-    title: 'My Smart School',
-    tagline: 'Student dashboard with an AI study helper and homework hints.',
-    description:
-      'Homework planner, grade tracker, timetable, exam countdowns and a daily study goal, plus an AI chat helper and a Homework Helper that gives hints from a photo of the question. Plain static site, no build step.',
-    highlights: ['AI chat and photo homework hints', 'No-build ES modules'],
-    stack: ['JavaScript', 'Firebase', 'OpenRouter'],
-    category: 'Web App',
-    tier: 'more',
-    year: 2026,
-    image: '/shots/mysmartschool.webp',
     accent: '#ff3b3b',
   },
 ]

@@ -11,20 +11,21 @@ interface GlyphSet {
 }
 
 const LINKS = [
-  { label: 'About', target: '#about', sections: ['about'] },
   { label: 'Work', target: '#work', sections: ['work', 'more'] },
+  { label: 'Process', target: '#process', sections: ['process'] },
   { label: 'Stack', target: '#stack', sections: ['stack'] },
   { label: 'Contact', target: '#contact', sections: ['contact'] },
 ]
 
-function monogram(): string {
+/** Cursive "Clayton Banks" as a static filled SVG (currentColor). Falls back to Clayton, then plain text. */
+function wordmark(): string {
   const g = glyphsJson as unknown as Record<string, GlyphSet | undefined>
-  const set = g.CB ?? g.Clayton
-  if (!set) return '<span class="nav__mono-txt">CB</span>'
+  const set = g.Name ?? g.Clayton
+  if (!set) return '<span class="nav__name-txt">Clayton Banks</span>'
   const [x, y, w, h] = set.box
-  const pad = 6
-  return `<svg class="nav__mono" viewBox="${x - pad} ${y - pad} ${w + pad * 2} ${h + pad * 2}" aria-hidden="true" focusable="false">${set.paths
-    .map((p) => `<path d="${p.d}" fill="currentColor" stroke="currentColor" stroke-width="2"/>`)
+  const pad = 4
+  return `<svg class="nav__name" viewBox="${x - pad} ${y - pad} ${w + pad * 2} ${h + pad * 2}" aria-hidden="true" focusable="false">${set.paths
+    .map((p) => `<path d="${p.d}" fill="currentColor"/>`)
     .join('')}</svg>`
 }
 
@@ -43,7 +44,7 @@ export function initNav(): void {
       </nav>
     </div>
     <div class="nav__pill glass">
-      <a class="nav__brand" href="#main" aria-label="Clayton Banks, back to top">${monogram()}</a>
+      <a class="nav__brand" href="#main" aria-label="Clayton Banks — home">${wordmark()}<i class="nav__brand-line" aria-hidden="true"></i></a>
       <nav class="nav__links" aria-label="Primary">${linkHtml('nav__link')}</nav>
       <div class="nav__actions">
         <button type="button" class="nav__icon nav__theme" aria-pressed="false" aria-label="Night theme">
@@ -54,8 +55,8 @@ export function initNav(): void {
           <span class="nav__ico nav__ico--open">${icons.menu}</span><span class="nav__ico nav__ico--close">${icons.close}</span>
         </button>
       </div>
-      <i class="nav__progress" aria-hidden="true"></i>
-    </div>`
+    </div>
+    <i class="nav__progress" aria-hidden="true"></i>`
 
   const pill = nav.querySelector<HTMLElement>('.nav__pill')!
   const sheet = nav.querySelector<HTMLElement>('.nav__sheet')!

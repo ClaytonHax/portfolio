@@ -1,77 +1,80 @@
 /* ─────────────────────────────────────────────────────────────
    Design tokens — the single source of truth.
    Modules use these variables only; never raw colours in CSS.
-   Two themes: light (pastel liquid glass) and night (neon glass).
+   Two themes: night (oxblood, default) and light (blush paper, crimson ink).
    ───────────────────────────────────────────────────────────── */
-:root,
 :root[data-theme='light'] {
   /* surface */
-  --bg: #e3e9f5;
-  --blob-1: #7aa7ff;
-  --blob-2: #ff8ac2;
-  --blob-3: #8ff0d0;
-  --blob-opacity: 1;
+  --bg: #fbf1ee;
+  --blob-1: #ff8f8f;
+  --blob-2: #f2b2a0;
+  --blob-3: #e0434f;
+  --blob-opacity: 0.55;
 
   /* the line + handwriting */
-  --ink: #ffffff;
-  --ink-glow: drop-shadow(0 2px 6px rgba(40, 50, 110, 0.35));
-  --ink-particle: 255, 255, 255; /* rgb triplet for canvas */
-  --pen-glow: 255, 255, 255;
+  --ink: #b0101f;
+  --ink-glow: drop-shadow(0 2px 6px rgba(120, 10, 20, 0.25));
+  --ink-particle: 176, 16, 31; /* rgb triplet for canvas */
+  --pen-glow: 220, 40, 50;
 
   /* text on the open background */
-  --text: #0f1222;
-  --text-dim: #3b4258; /* 7:1 on --bg */
-  --text-faint: #5b627a; /* decoration / large text only */
+  --text: #1f0b0d;
+  --text-dim: #5c2b2f; /* ~9:1 on --bg */
+  --text-faint: #8a5a5c; /* decoration / large text only */
 
   /* glass */
-  --glass-text: #10131a;
-  --glass-dim: #3b4252;
-  --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.72), rgba(255, 255, 255, 0.38));
-  --glass-border: rgba(255, 255, 255, 0.7);
-  --glass-shine: rgba(255, 255, 255, 0.75);
+  --glass-text: #1f0b0d;
+  --glass-dim: #5c2b2f;
+  --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.42));
+  --glass-border: rgba(255, 255, 255, 0.75);
+  --glass-shine: rgba(255, 255, 255, 0.8);
   --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.3),
-    0 24px 48px -24px rgba(30, 40, 80, 0.4);
-  --glass-blur: blur(20px) saturate(180%);
+    0 24px 48px -24px rgba(110, 20, 30, 0.35);
+  --glass-blur: blur(20px) saturate(170%);
   --chip-bg: rgba(255, 255, 255, 0.55);
-  --chip-border: rgba(16, 19, 26, 0.12);
+  --chip-border: rgba(31, 11, 13, 0.14);
 
-  /* accents (used sparingly: focus, links, the 1st-place badge) */
-  --accent: #3a5bff;
-  --accent-2: #d6337a;
-  --focus: #1b2bd6;
+  --accent: #c8102e;
+  --accent-2: #e2572b;
+  --accent-ink: #c8102e;
+  --focus: #8a0018;
+  --rule: rgba(31, 11, 13, 0.12);
 
   color-scheme: light;
 }
 
+:root,
 :root[data-theme='night'] {
-  --bg: #06070c;
-  --blob-1: #2b3cff;
-  --blob-2: #b0177a;
-  --blob-3: #00a39a;
-  --blob-opacity: 0.55;
+  --bg: #14070a;
+  --blob-1: #8f0f1f;
+  --blob-2: #4a0a1c;
+  --blob-3: #c2361f;
+  --blob-opacity: 0.5;
 
-  --ink: #ffffff;
-  --ink-glow: drop-shadow(0 0 3px rgba(255, 255, 255, 0.75)) drop-shadow(0 0 14px rgba(120, 140, 255, 0.55));
-  --ink-particle: 255, 255, 255;
-  --pen-glow: 170, 185, 255;
+  --ink: #fff1ec;
+  --ink-glow: drop-shadow(0 0 3px rgba(255, 236, 230, 0.7)) drop-shadow(0 0 14px rgba(255, 60, 60, 0.45));
+  --ink-particle: 255, 225, 215;
+  --pen-glow: 255, 90, 80;
 
-  --text: #f2f4ff;
-  --text-dim: #c9cee2;
-  --text-faint: #8a90a8;
+  --text: #fbeeea;
+  --text-dim: #e2c2bc;
+  --text-faint: #a8827c;
 
-  --glass-text: #f2f4ff;
-  --glass-dim: #d2d6e8;
-  --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.13), rgba(255, 255, 255, 0.04));
-  --glass-border: rgba(255, 255, 255, 0.16);
-  --glass-shine: rgba(160, 180, 255, 0.35);
-  --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 24px 56px -24px rgba(0, 0, 0, 0.85);
-  --glass-blur: blur(22px) saturate(160%);
-  --chip-bg: rgba(255, 255, 255, 0.07);
-  --chip-border: rgba(255, 255, 255, 0.16);
+  --glass-text: #fbeeea;
+  --glass-dim: #e2c2bc;
+  --glass-bg: linear-gradient(160deg, rgba(255, 240, 236, 0.1), rgba(255, 240, 236, 0.03));
+  --glass-border: rgba(255, 200, 190, 0.16);
+  --glass-shine: rgba(255, 120, 110, 0.32);
+  --glass-shadow: inset 0 1px 0 rgba(255, 220, 210, 0.18), 0 24px 56px -24px rgba(0, 0, 0, 0.85);
+  --glass-blur: blur(22px) saturate(150%);
+  --chip-bg: rgba(255, 240, 236, 0.07);
+  --chip-border: rgba(255, 200, 190, 0.18);
 
-  --accent: #8da2ff;
-  --accent-2: #ff7ab8;
-  --focus: #b4c2ff;
+  --accent: #ff4d4d;
+  --accent-2: #ff8a5c;
+  --accent-ink: #e0242f;
+  --focus: #ffb3a8;
+  --rule: rgba(255, 200, 190, 0.14);
 
   color-scheme: dark;
 }
@@ -80,18 +83,22 @@
   --font-sans: 'Geist Variable', 'Geist', -apple-system, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: 'Geist Mono Variable', 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* type scale (fluid) */
+  /* type scale (fluid; bigger on desktop) */
   --step--1: clamp(0.8rem, 0.78rem + 0.1vw, 0.875rem);
-  --step-0: clamp(1rem, 0.96rem + 0.2vw, 1.125rem);
-  --step-1: clamp(1.25rem, 1.1rem + 0.6vw, 1.6rem);
-  --step-2: clamp(1.6rem, 1.3rem + 1.4vw, 2.5rem);
-  --step-3: clamp(2.2rem, 1.6rem + 3vw, 4.25rem);
-  --step-4: clamp(2.8rem, 1.8rem + 5vw, 6.5rem);
+  --step-0: clamp(1rem, 0.95rem + 0.25vw, 1.2rem);
+  --step-1: clamp(1.25rem, 1.05rem + 0.8vw, 1.85rem);
+  --step-2: clamp(1.6rem, 1.2rem + 1.6vw, 3rem);
+  --step-3: clamp(2.2rem, 1.4rem + 3.4vw, 5rem);
+  --step-4: clamp(2.8rem, 1.5rem + 6vw, 8rem);
 
   --radius: 18px;
   --radius-lg: 28px;
-  --gutter: max(16px, env(safe-area-inset-left, 0px), 4vw);
-  --max: 1200px;
+
+  /* layout */
+  --max: 1440px;
+  --max-text: 68ch;
+  --gutter: clamp(16px, 5vw, 96px);
+  --sec-pad: clamp(72px, 13vw, 120px);
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-spring: cubic-bezier(0.2, 0.9, 0.25, 1.2);
@@ -103,4 +110,9 @@
   --z-ink: 3;
   --z-nav: 30;
   --z-dialog: 40;
+}
+@media (min-width: 1024px) {
+  :root {
+    --sec-pad: clamp(96px, 14vh, 200px);
+  }
 }

@@ -1,5 +1,6 @@
 /** Owner: sections agent. Renders #bg, #nav, #intro-meta, #about, #work, #more, #stack, #contact, #footer. Synchronous. */
 import './sections.css'
+import './story.css'
 import { initReveal } from './reveal'
 import { initBackground } from './background'
 import { initNav } from './nav'
@@ -10,6 +11,9 @@ import { initMore } from './more'
 import { initStack } from './stack'
 import { initContact } from './contact'
 import { initFooter } from './footer'
+import { magnetic } from './ui'
+import { initProcess } from './process'
+import { initChapters } from './chapters'
 
 export function initSections(): void {
   initReveal()
@@ -22,4 +26,7 @@ export function initSections(): void {
   initStack()
   initContact()
   initFooter()
+  magnetic()
+  initProcess()
+  initChapters()
 }

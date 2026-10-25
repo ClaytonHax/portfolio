@@ -52,7 +52,7 @@ export function initCase(): void {
 
   /* ───────── rendering ───────── */
   function section(label: string, body: string, cls = ''): string {
-    return `<section class="case__sec ${cls}"><h3 class="case__label">${label}</h3><div class="case__body">${body}</div></section>`
+    return `<section class="case__sec ${cls}" data-reveal><h3 class="case__label">${label}</h3><div class="case__body">${body}</div></section>`
   }
 
   function render(p: Project, c: CaseStudy | undefined): string {
@@ -70,25 +70,29 @@ export function initCase(): void {
     if (c?.result) parts.push(section('Result', `<p>${esc(c.result)}</p>`))
 
     return `
-      <figure class="case__hero" style="--accent-art:${esc(p.accent)}" data-reveal>
-        <img src="${esc(p.image)}" srcset="${esc(sm)} 800w, ${esc(p.image)} 1600w" sizes="(min-width: 980px) 940px, 100vw"
-             width="1600" height="1000" alt="Screenshot of ${esc(p.title)}" decoding="async" />
-        <span class="case__art" aria-hidden="true">${esc(p.title.slice(0, 1))}</span>
-      </figure>
-      <header class="case__head" data-reveal>
-        <p class="case__meta"><span>${esc(p.category)}</span><span aria-hidden="true">·</span><span>${p.year}</span>${
-          p.badge ? `<span class="case__badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/></svg>${esc(p.badge)}</span>` : ''
-        }</p>
-        <h2 id="case-title" class="case__title">${esc(p.title)}</h2>
-        <p class="case__tagline">${esc(p.tagline)}</p>
-        ${links ? `<div class="case__links">${links}</div>` : ''}
-      </header>
-      <div class="case__facts" data-reveal>
-        ${c?.role ? `<div><h3 class="case__label">Role</h3><p>${esc(c.role)}</p></div>` : ''}
-        <div><h3 class="case__label">Stack</h3><ul class="case__chips">${p.stack.map((s) => `<li class="chip">${esc(s)}</li>`).join('')}</ul></div>
+      <div class="case__aside">
+        <figure class="case__hero" style="--accent-art:${esc(p.accent)}" data-reveal>
+          <img src="${esc(p.image)}" srcset="${esc(sm)} 800w, ${esc(p.image)} 1600w" sizes="(min-width: 1024px) 400px, 100vw"
+               width="1600" height="1000" alt="Screenshot of ${esc(p.title)}" decoding="async" />
+          <span class="case__art" aria-hidden="true">${esc(p.title.slice(0, 1))}</span>
+        </figure>
+        ${links ? `<div class="case__links" data-reveal>${links}</div>` : ''}
+        <div class="case__facts" data-reveal>
+          ${c?.role ? `<div><h3 class="case__label">Role</h3><p>${esc(c.role)}</p></div>` : ''}
+          <div><h3 class="case__label">Stack</h3><ul class="case__chips">${p.stack.map((s) => `<li class="chip">${esc(s)}</li>`).join('')}</ul></div>
+        </div>
       </div>
-      ${c ? `<p class="case__lead" data-reveal>${esc(c.summary)}</p>` : ''}
-      <div class="case__sections" data-reveal>${parts.join('')}</div>`
+      <div class="case__main">
+        <header class="case__head" data-reveal>
+          <p class="case__meta"><span>${esc(p.category)}</span><span aria-hidden="true">·</span><span>${p.year}</span>${
+            p.badge ? `<span class="case__badge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="m8.5 14-1.5 8 5-3 5 3-1.5-8"/></svg>${esc(p.badge)}</span>` : ''
+          }</p>
+          <h2 id="case-title" class="case__title">${esc(p.title)}</h2>
+          <p class="case__tagline">${esc(p.tagline)}</p>
+        </header>
+        ${c ? `<p class="case__lead" data-reveal>${esc(c.summary)}</p>` : ''}
+        <div class="case__sections">${parts.join('')}</div>
+      </div>`
   }
 
   function hookImage(): void {
@@ -159,151 +163,247 @@ export function initCase(): void {
   }
 
   /* ───────── motion ───────── */
-  function cardClip(from: HTMLElement): string {
-    const r = from.getBoundingClientRect()
-    const pr = panel.getBoundingClientRect()
-    const t = Math.max(0, r.top - pr.top)
-    const l = Math.max(0, r.left - pr.left)
-    const b = Math.max(0, pr.bottom - r.bottom)
-    const rt = Math.max(0, pr.right - r.right)
-    return `inset(${t}px ${rt}px ${b}px ${l}px round 24px)`
-  }
-
-  /* The pen draws the panel frame: one rounded-rect, two dashes growing from the point nearest the card. */
   const SVGNS = 'http://www.w3.org/2000/svg'
   let frame: SVGSVGElement | null = null
+  let clone: HTMLElement | null = null
 
-  function dropFrame(): void {
-    if (!frame) return
-    gsap.killTweensOf(frame)
-    frame.remove()
-    frame = null
+  const revealTargets = (): HTMLElement[] => {
+    const q = (s: string) => [...content.querySelectorAll<HTMLElement>(s)]
+    return [...q('.case__head'), ...q('.case__links'), ...q('.case__facts'), ...q('.case__lead'), ...q('.case__sec')]
   }
 
-  function makeFrame(from: HTMLElement | null): { svg: SVGSVGElement; origin: { x: number; y: number }; draw: gsap.core.Tween } {
-    const pr = panel.getBoundingClientRect()
-    const wr = wrap.getBoundingClientRect()
+  function dropFrame(): void {
+    if (frame) { gsap.killTweensOf(frame); frame.remove(); frame = null }
+    if (clone) { gsap.killTweensOf(clone); clone.remove(); clone = null }
+  }
+
+  /** The visible thumbnail of the card (or tile) that opened the case. */
+  function shotOf(el: HTMLElement | null | undefined): HTMLElement | null {
+    if (!el?.isConnected) return null
+    const host = el.closest<HTMLElement>('.card, .tile') ?? el
+    return host.querySelector<HTMLElement>('.shot') ?? host
+  }
+
+  function makeClone(hero: HTMLElement, r: { left: number; top: number; width: number; height: number }): HTMLElement {
+    const c = hero.cloneNode(true) as HTMLElement
+    c.removeAttribute('data-reveal')
+    c.classList.add('case__clone')
+    c.setAttribute('aria-hidden', 'true')
+    c.querySelectorAll('img').forEach((i) => i.setAttribute('alt', ''))
+    wrap.appendChild(c)
+    gsap.set(c, { left: r.left, top: r.top, width: r.width, height: r.height })
+    clone = c
+    return c
+  }
+
+  const arcs = (x: number, y: number, w: number, h: number, r: number) =>
+    `H${x + w - r}A${r} ${r} 0 0 1 ${x + w} ${y + r}V${y + h - r}A${r} ${r} 0 0 1 ${x + w - r} ${y + h}H${x + r}A${r} ${r} 0 0 1 ${x} ${y + h - r}V${y + r}A${r} ${r} 0 0 1 ${x + r} ${y}Z`
+
+  /**
+   * One pen stroke: the panel outline grows in two directions from `s0`, they meet at the point nearest the
+   * thumbnail, then the nib continues without lifting along a curved connector and draws the thumbnail outline.
+   */
+  function makeFrame(pr: DOMRect, hr: DOMRect | null, anchor: DOMRect | null) {
     const w = pr.width
     const h = pr.height
-    const r = 28
+    const pad = 1
+    const rad = Math.max(8, (parseFloat(getComputedStyle(panel).borderTopLeftRadius) || 28))
     const svg = document.createElementNS(SVGNS, 'svg')
     svg.setAttribute('class', 'case__frame')
     svg.setAttribute('aria-hidden', 'true')
     svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
-    svg.style.cssText = `left:${pr.left - wr.left}px;top:${pr.top - wr.top}px;width:${w}px;height:${h}px`
-    const d = `M${r + 1} 1H${w - r - 1}A${r - 1} ${r - 1} 0 0 1 ${w - 1} ${r}V${h - r}A${r - 1} ${r - 1} 0 0 1 ${w - r} ${h - 1}H${r + 1}A${r - 1} ${r - 1} 0 0 1 1 ${h - r}V${r}A${r - 1} ${r - 1} 0 0 1 ${r + 1} 1Z`
+    svg.style.cssText = `left:${pr.left}px;top:${pr.top}px;width:${w}px;height:${h}px`
     const mk = (tag: string, cls: string) => {
       const el = document.createElementNS(SVGNS, tag)
       el.setAttribute('class', cls)
       svg.appendChild(el)
       return el
     }
+    const d = `M${pad + rad} ${pad}` + arcs(pad, pad, w - pad * 2, h - pad * 2, rad)
     const fwd = mk('path', 'case__frame-line') as SVGPathElement
     const back = mk('path', 'case__frame-line') as SVGPathElement
+    const thumb = mk('path', 'case__frame-line') as SVGPathElement
     fwd.setAttribute('d', d)
     back.setAttribute('d', d)
     const nibA = mk('circle', 'case__frame-nib')
     const nibB = mk('circle', 'case__frame-nib')
-    ;[nibA, nibB].forEach((n) => n.setAttribute('r', '3.5'))
+    const nibC = mk('circle', 'case__frame-nib')
+    ;[nibA, nibB, nibC].forEach((n) => n.setAttribute('r', '3.5'))
+    nibC.setAttribute('opacity', '0')
     wrap.appendChild(svg)
     frame = svg
 
     const L = fwd.getTotalLength()
-    // start at the perimeter point nearest the card (or top centre when there is none)
-    const fr = from?.getBoundingClientRect()
-    const tx = fr ? Math.min(Math.max(fr.left + fr.width / 2 - pr.left, 0), w) : w / 2
-    const ty = fr ? Math.min(Math.max(fr.top + fr.height / 2 - pr.top, 0), h) : 0
-    let s0 = 0
-    let best = Infinity
-    for (let i = 0; i < 240; i++) {
-      const pt = fwd.getPointAtLength((L * i) / 240)
-      const dist = (pt.x - tx) ** 2 + (pt.y - ty) ** 2
-      if (dist < best) { best = dist; s0 = (L * i) / 240 }
+    const wrapL = (v: number) => ((v % L) + L) % L
+    const nearest = (tx: number, ty: number) => {
+      let best = Infinity
+      let at = 0
+      for (let i = 0; i < 360; i++) {
+        const pt = fwd.getPointAtLength((L * i) / 360)
+        const dist = (pt.x - tx) ** 2 + (pt.y - ty) ** 2
+        if (dist < best) { best = dist; at = (L * i) / 360 }
+      }
+      return at
+    }
+
+    // thumbnail outline (drawn after the panel outline, same stroke)
+    const gap = 5
+    const tx = hr ? hr.left - pr.left - gap : 0
+    const ty = hr ? hr.top - pr.top - gap : 0
+    const tw = hr ? hr.width + gap * 2 : 0
+    const th = hr ? hr.height + gap * 2 : 0
+    const tr = 20 + gap
+    let s0: number
+    if (hr) {
+      const sMeet = nearest(tx + tr, ty)
+      s0 = wrapL(sMeet + L / 2)
+      const meet = fwd.getPointAtLength(sMeet)
+      const sx = tx + tr
+      const sy = ty
+      thumb.setAttribute('d', `M${meet.x} ${meet.y}Q${sx} ${meet.y} ${sx} ${sy}` + arcs(tx, ty, tw, th, tr))
+    } else {
+      const cx = anchor ? Math.min(Math.max(anchor.left + anchor.width / 2 - pr.left, 0), w) : w / 2
+      const cy = anchor ? Math.min(Math.max(anchor.top + anchor.height / 2 - pr.top, 0), h) : 0
+      s0 = nearest(cx, cy)
     }
     const origin = fwd.getPointAtLength(s0)
-    const wrapL = (v: number) => ((v % L) + L) % L
-    const state = { len: 0 }
+    const T = hr ? thumb.getTotalLength() : 0
+
+    const state = { len: 0, t: 0 }
     const paint = () => {
       const len = state.len
-      fwd.style.strokeDasharray = `${len} ${L - len}`
+      fwd.style.strokeDasharray = `${len} ${L - len + 2}`
       fwd.style.strokeDashoffset = `${-s0}`
-      back.style.strokeDasharray = `${len} ${L - len}`
+      back.style.strokeDasharray = `${len} ${L - len + 2}`
       back.style.strokeDashoffset = `${-(s0 - len)}`
       const a = fwd.getPointAtLength(wrapL(s0 + len))
       const b = fwd.getPointAtLength(wrapL(s0 - len))
       nibA.setAttribute('cx', `${a.x}`); nibA.setAttribute('cy', `${a.y}`)
       nibB.setAttribute('cx', `${b.x}`); nibB.setAttribute('cy', `${b.y}`)
+      if (hr) {
+        const t = state.t
+        thumb.style.strokeDasharray = `${T} ${T + 2}`
+        thumb.style.strokeDashoffset = `${T * (1 - t) + (t <= 0 ? 4 : 0)}`
+        thumb.style.opacity = t > 0 ? '1' : '0'
+        const c = thumb.getPointAtLength(T * t)
+        nibC.setAttribute('cx', `${c.x}`); nibC.setAttribute('cy', `${c.y}`)
+        nibC.setAttribute('opacity', t > 0 && t < 1 ? '1' : '0')
+        const dual = t > 0 ? '0' : '1'
+        nibA.setAttribute('opacity', dual); nibB.setAttribute('opacity', dual)
+      }
     }
     paint()
-    const draw = gsap.to(state, { len: L / 2, duration: 0.85, ease: 'power2.inOut', onUpdate: paint })
-    draw.pause()
-    return { svg, origin, draw }
+    return { svg, state, paint, origin, half: L / 2 }
+  }
+
+  function finish(): void {
+    busy = null
+    dropFrame()
+    gsap.set([panel, content, ...content.querySelectorAll('[data-reveal]')], { clearProps: 'all' })
   }
 
   function animateOpen(from?: HTMLElement | null): void {
     busy?.kill()
     dropFrame()
-    const reveal = content.querySelectorAll('[data-reveal]:not(.case__hero)')
     const hero = content.querySelector<HTMLElement>('.case__hero')
-    const tl = gsap.timeline({
-      onComplete: () => { busy = null; dropFrame(); gsap.set([panel, reveal, hero], { clearProps: 'all' }) },
-    })
+    const parts = revealTargets()
+    const tl = gsap.timeline({ onComplete: finish })
     busy = tl
     tl.fromTo(backdrop, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'power2.out' }, 0)
-    if (reducedMotion) {
-      tl.fromTo(panel, { opacity: 0 }, { opacity: 1, duration: 0.2 }, 0)
+    if (reducedMotion || !hero) {
+      tl.fromTo(panel, { opacity: 0 }, { opacity: 1, duration: 0.15 }, 0)
       return
     }
-    if (isMobile()) {
-      tl.fromTo(panel, { yPercent: 100 }, { yPercent: 0, duration: 0.6, ease: 'expo.out' }, 0)
-      tl.fromTo([hero, ...reveal], { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, 0.2)
-      return
-    }
-    const src = from?.isConnected ? from : null
-    const { svg, origin, draw } = makeFrame(src)
+
     const pr = panel.getBoundingClientRect()
-    const reach = Math.hypot(Math.max(origin.x, pr.width - origin.x), Math.max(origin.y, pr.height - origin.y)) + 4
-    // line first
-    tl.add(draw.play(), 0.05)
-    tl.fromTo(svg, { opacity: 0 }, { opacity: 1, duration: 0.12 }, 0.05)
-    // glass floods outward from where the line started, behind the stroke
-    tl.fromTo(
-      panel,
-      { clipPath: `circle(0px at ${origin.x}px ${origin.y}px)` },
-      { clipPath: `circle(${reach}px at ${origin.x}px ${origin.y}px)`, duration: 1, ease: 'power2.out' },
-      0.2,
-    )
-    // content fills in
-    if (hero) {
-      tl.fromTo(hero, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 0.75, ease: 'expo.out' }, 0.65)
+    const hr = hero.getBoundingClientRect()
+    const shot = shotOf(from)
+    const src = shot ? shot.getBoundingClientRect() : null
+    const { svg, state, paint, origin, half } = makeFrame(pr, hr, null)
+    const cx = hr.left - pr.left + hr.width / 2
+    const cy = hr.top - pr.top + hr.height / 2
+    const rHero = Math.hypot(hr.width / 2, hr.height / 2) + 8
+    const reach = Math.hypot(Math.max(cx, pr.width - cx), Math.max(cy, pr.height - cy)) + 8
+    void origin
+
+    // panel hidden until the glass floods; hero + content waiting
+    panel.style.clipPath = `circle(0px at ${cx}px ${cy}px)`
+    gsap.set(hero, { visibility: 'hidden' })
+    gsap.set(parts, { opacity: 0, y: 16 })
+
+    // 0: the card's thumbnail is cloned and lifts off
+    const c = makeClone(hero, src ?? { left: hr.left + hr.width * 0.06, top: hr.top + hr.height * 0.06, width: hr.width * 0.88, height: hr.height * 0.88 })
+    if (!src) gsap.set(c, { opacity: 0 })
+    const target = { left: hr.left, top: hr.top, width: hr.width, height: hr.height }
+    let swapped = false
+    const swap = () => {
+      if (swapped) return
+      swapped = true
+      gsap.set(hero, { visibility: 'visible' })
+      if (clone) { clone.remove(); clone = null }
     }
-    tl.fromTo(
-      reveal,
-      { y: 28, opacity: 0, filter: 'blur(6px)' },
-      { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.7, ease: 'power3.out', stagger: 0.07 },
-      0.75,
-    )
-    // frame settles away once closed
-    tl.to(svg, { opacity: 0, duration: 0.5, ease: 'power1.inOut' }, 1.0)
+
+    // 0.05–0.75: panel outline from the point nearest the card, two dashes growing together
+    tl.fromTo(svg, { opacity: 0 }, { opacity: 1, duration: 0.1 }, 0.05)
+    tl.to(state, { len: half, duration: 0.7, ease: 'power2.inOut', onUpdate: paint }, 0.05)
+    // 0.7–1.15: pen carries on to the thumbnail outline while the clone lands in its slot
+    tl.to(state, { t: 1, duration: 0.45, ease: 'power1.inOut', onUpdate: paint }, 0.7)
+    tl.to(c, { ...target, opacity: 1, duration: 0.45, ease: 'expo.out' }, 0.7)
+    // 1.1–1.5: glass floods from the thumbnail; clone swaps for the real image once covered
+    const flood = { r: 0 }
+    tl.to(flood, {
+      r: reach, duration: 0.55, ease: 'power2.out',
+      onUpdate: () => {
+        panel.style.clipPath = `circle(${flood.r}px at ${cx}px ${cy}px)`
+        if (flood.r >= rHero) swap()
+      },
+    }, 1.1)
+    tl.to(parts, { y: 0, opacity: 1, duration: 0.55, ease: 'power3.out', stagger: 0.05 }, 1.2)
+    // the drawn line settles into the normal glass border
+    tl.to(svg, { opacity: 0, duration: 0.45, ease: 'power1.inOut' }, 1.55)
+    if (isMobile()) tl.timeScale(1.7)
   }
 
-  function animateClose(done: () => void): void {
+  function animateClose(id: string, done: () => void): void {
     busy?.kill()
     dropFrame()
-    const from = opener?.isConnected ? opener : null
-    const tl = gsap.timeline({ onComplete: done })
+    gsap.set([panel, content, ...content.querySelectorAll('[data-reveal]')], { clearProps: 'all' })
+    const hero = content.querySelector<HTMLElement>('.case__hero')
+    const parts = revealTargets()
+    const shot = shotOf(opener)
+    const shotHost = shot?.closest<HTMLElement>('[data-id]')
+    const tl = gsap.timeline({ onComplete: () => { dropFrame(); done() } })
     busy = tl
-    tl.to(backdrop, { opacity: 0, duration: 0.35, ease: 'power2.in' }, 0)
-    if (reducedMotion) {
+    tl.to(backdrop, { opacity: 0, duration: 0.35, ease: 'power2.in' }, 0.1)
+    if (reducedMotion || !hero) {
       tl.to(panel, { opacity: 0, duration: 0.15 }, 0)
-    } else if (isMobile()) {
-      tl.to(panel, { yPercent: 100, duration: 0.45, ease: 'power3.in' }, 0)
-    } else if (from) {
-      tl.to(content, { opacity: 0, duration: 0.18, ease: 'power1.out' }, 0)
-      tl.to(panel, { clipPath: cardClip(from), opacity: 0.4, duration: 0.5, ease: 'expo.inOut' }, 0.04)
-    } else {
-      tl.to(panel, { opacity: 0, y: 16, scale: 0.98, duration: 0.3, ease: 'power2.in' }, 0)
+      return
     }
+    const pr = panel.getBoundingClientRect()
+    const hr = hero.getBoundingClientRect()
+    const cx = hr.left - pr.left + hr.width / 2
+    const cy = hr.top - pr.top + hr.height / 2
+    const reach = Math.hypot(Math.max(cx, pr.width - cx), Math.max(cy, pr.height - cy)) + 8
+    const src = shot && (!shotHost || shotHost.dataset.id === id) ? shot.getBoundingClientRect() : null
+    const { svg, state, paint, half } = makeFrame(pr, null, src)
+    state.len = half
+    paint()
+    panel.style.clipPath = `circle(${reach}px at ${cx}px ${cy}px)`
+    const c = makeClone(hero, hr)
+    gsap.set(hero, { visibility: 'hidden' })
+    // content out, glass recedes into the thumbnail
+    tl.to(parts, { opacity: 0, y: 8, duration: 0.14, ease: 'power1.in', stagger: 0.01 }, 0)
+    const flood = { r: reach }
+    tl.to(flood, { r: 0, duration: 0.3, ease: 'power2.in', onUpdate: () => { panel.style.clipPath = `circle(${flood.r}px at ${cx}px ${cy}px)` } }, 0.1)
+    // thumbnail flies back to its card
+    if (src) tl.to(c, { left: src.left, top: src.top, width: src.width, height: src.height, duration: 0.35, ease: 'power3.inOut' }, 0.1)
+    else tl.to(c, { opacity: 0, scale: 0.92, duration: 0.25, ease: 'power2.in' }, 0.1)
+    // outline erases back to where it started
+    tl.fromTo(svg, { opacity: 0 }, { opacity: 1, duration: 0.08 }, 0)
+    tl.to(state, { len: 0, duration: 0.3, ease: 'power2.inOut', onUpdate: paint }, 0.15)
+    tl.to(svg, { opacity: 0, duration: 0.08 }, 0.4)
+    tl.to(c, { opacity: 0, duration: 0.08 }, 0.4)
+    if (isMobile()) tl.timeScale(1.1)
   }
 
   /* ───────── open / close ───────── */
@@ -341,11 +441,12 @@ export function initCase(): void {
   function close(): void {
     if (!currentId) return
     const target = opener
+    const closing = currentId
     currentId = null
     opener = null
     document.removeEventListener('keydown', trap)
     clearHash()
-    animateClose(() => {
+    animateClose(closing, () => {
       wrap.hidden = true
       gsap.set([panel, backdrop, content], { clearProps: 'all' })
       content.innerHTML = ''
@@ -383,7 +484,7 @@ export function initCase(): void {
     } else if (currentId) close()
   }
   window.addEventListener('hashchange', fromHash)
-  window.addEventListener('resize', dropFrame)
+  window.addEventListener('resize', () => { if (busy) busy.progress(1) })
 
   // The pen's intro releases scroll when it finishes; keep it locked while a case is open.
   on('intro:done', () => { if (currentId) lockScroll(true) })

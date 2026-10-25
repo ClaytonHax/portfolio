@@ -9,6 +9,8 @@ import { NS, type Pt, type Rect } from './glyph'
 import { buildIntro, computeLayout, createTimeline, type IntroDOM } from './intro'
 import { buildJourney, lengthAtKey, pointAtLength, type Anchor, type Journey, type Side } from './journey'
 import { createInk } from './ink'
+import { initCursor } from './cursor'
+import { initSignature } from './signature'
 
 const SESSION_KEY = 'cb-intro'
 /** where the pen tip sits while scrolling, as a fraction of the viewport height */
@@ -41,12 +43,21 @@ function relRect(el: HTMLElement, root: HTMLElement): Rect | null {
 function readAnchors(main: HTMLElement): Anchor[] {
   const mobile = isMobile()
   const out: Anchor[] = []
+  const st = mobile && document.getElementById('intro-stage')
+  const sr = st ? relRect(st, main) : null
+  // phone: swing out to the left edge right under the name, before the tagline, so the line never crosses it
+  if (sr) out.push({ id: '', side: 'left', gap: 0, rect: { x: 0, y: sr.y + sr.h - 90, w: 1, h: 2 } })
   document.querySelectorAll<HTMLElement>('[data-pen-stop]').forEach((el) => {
     const rect = relRect(el, main)
     if (!rect || (rect.w < 2 && rect.h < 2)) return
     const raw = (mobile && el.dataset.penSideMobile) || el.dataset.penSide || 'through'
     const side: Side = raw === 'left' || raw === 'right' || raw === 'end' ? raw : 'through'
     const gap = Number(el.dataset.penGap)
+    // phone: the only free column is the gutter, so the line rides the left edge and never crosses copy
+    if (mobile && side !== 'end') {
+      out.push({ id: el.dataset.penStop || '', side: 'left', gap: 0, rect: { ...rect, x: 0 } })
+      return
+    }
     out.push({ id: el.dataset.penStop || '', side, gap: Number.isFinite(gap) && el.dataset.penGap ? gap : 28, rect })
   })
   return out
@@ -73,6 +84,26 @@ export async function initPen(): Promise<void> {
   layer.replaceChildren(svg)
 
   const ink = createInk(canvas)
+  let held = false
+  let baseLw = 3
+  on('pen:hold', ({ on: h }) => {
+    held = h
+    ink.hold(h)
+  })
+  initCursor(ink)
+  initSignature()
+  const pulse = { w: 0 }
+  function inkDrop() {
+    if (reducedMotion) return
+    gsap.killTweensOf(pulse)
+    pulse.w = 1
+    gsap.to(pulse, {
+      w: 0,
+      duration: 0.25,
+      ease: 'power2.out',
+      onUpdate: () => (jPath.style.strokeWidth = (baseLw * (1 + 0.4 * pulse.w)).toFixed(2)),
+    })
+  }
 
   /* ── state ── */
   type Phase = 'idle' | 'playing' | 'skipping' | 'done'
@@ -93,9 +124,11 @@ export async function initPen(): Promise<void> {
 
   const hooks = {
     pen(p: Pt) {
+      if (held) return
       ink.tip(p.x, p.y + mainTop)
     },
     burst(p: Pt) {
+      if (held) return
       ink.burst(p.x, p.y + mainTop, 60, 7, 3.4)
     },
     finish() {
@@ -130,8 +163,9 @@ export async function initPen(): Promise<void> {
     introG.replaceChildren()
     const layout = computeLayout(m.st, m.W)
     intro = buildIntro(introG, layout)
-    jPath.style.strokeWidth = layout.lw.toFixed(2)
-    if (phase === 'done') intro.all.forEach((s) => s.set(1))
+    baseLw = layout.lw
+    jPath.style.strokeWidth = baseLw.toFixed(2)
+    if (phase === 'done') intro.all.forEach((s) => (s.set(1), s.back?.(1)))
     else {
       intro.all.forEach((s) => s.set(0))
       if (phase === 'playing' || phase === 'skipping') {
@@ -199,7 +233,7 @@ export async function initPen(): Promise<void> {
     const j = journey
     if (!j) return
     jPath.style.strokeDashoffset = String(nativeLen - curL)
-    if (moved !== 0 && curL > 0 && curL < nativeLen - 0.5 && !reducedMotion) {
+    if (!held && moved !== 0 && curL > 0 && curL < nativeLen - 0.5 && !reducedMotion) {
       pointAtLength(j, curL, tmp)
       ink.tip(tmp.x, tmp.y + mainTop)
     }
@@ -208,7 +242,10 @@ export async function initPen(): Promise<void> {
       const hit = curL >= s.len - 0.5 && curL > 0
       if (hit && !reached.has(s.id)) {
         reached.add(s.id)
-        if (!quiet && !reducedMotion) ink.burst(s.pt.x, s.pt.y + mainTop, 40, 5, 3)
+        if (!quiet && !reducedMotion && !held) {
+          ink.burst(s.pt.x, s.pt.y + mainTop, 40, 5, 3)
+          inkDrop()
+        }
         if (s.id) emit('pen:reach', { id: s.id })
       } else if (!hit && reached.has(s.id)) {
         reached.delete(s.id)
@@ -260,7 +297,7 @@ export async function initPen(): Promise<void> {
       /* private mode */
     }
     // Skipping fast-forwards through the whole timeline; make sure the drawn state is final.
-    intro?.all.forEach((s) => s.set(1))
+    intro?.all.forEach((s) => (s.set(1), s.back?.(1)))
     lockScroll(false)
     emit('intro:done', { skipped })
     ScrollTrigger.refresh()

@@ -26,6 +26,7 @@
   display: flex;
   flex-direction: column;
   width: min(980px, 100%);
+  border-radius: 28px;
   height: min(900px, 100%);
   overflow: hidden;
   outline: none;
@@ -347,6 +348,19 @@
   flex: none;
 }
 
+/* layout: single column by default; aside + main flatten so source order can be re-sorted */
+.case__aside,
+.case__main {
+  display: contents;
+}
+.case__hero { order: 1; }
+.case__head { order: 2; }
+.case__links { order: 3; margin-top: 0; }
+.case__facts { order: 4; }
+.case__lead { order: 5; }
+.case__sections { order: 6; }
+.case__main > .case__sections { display: grid; }
+
 @media (min-width: 769px) {
   .case__hero {
     aspect-ratio: auto;
@@ -366,23 +380,63 @@
   .case__facts > div:only-child {
     grid-column: 1 / -1;
   }
-  .case__lead {
-    margin-left: 0;
+}
+
+/* desktop: wide panel, sticky thumbnail + facts on the left, narrative on the right */
+@media (min-width: 1024px) {
+  .case__panel {
+    width: min(1180px, 100%);
+  }
+  .case__content {
+    grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+    column-gap: clamp(40px, 4.5vw, 72px);
+    align-items: start;
+  }
+  .case__aside {
+    display: grid;
+    gap: 22px;
+    position: sticky;
+    top: 0;
+    align-self: start;
+  }
+  .case__main {
+    display: grid;
+    gap: clamp(22px, 3vw, 36px);
+    min-width: 0;
+    padding-top: 4px;
+  }
+  .case__hero {
+    height: auto;
+    aspect-ratio: 16 / 10;
+  }
+  .case__facts {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 18px;
+    padding-block: 18px 0;
+    border-bottom: 0;
+  }
+  .case__sec {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+  }
+  .case__label {
+    padding-top: 0;
+  }
+  .case__head {
+    padding-right: 44px;
   }
 }
 
 /* mobile: full-screen sheet */
 @media (max-width: 768px) {
   .case {
-    padding: 0;
-    place-items: end stretch;
+    padding: 8px;
+    place-items: stretch;
   }
   .case__panel {
     width: 100%;
     height: 100%;
-    height: 100dvh;
-    border-radius: 0;
-    border: 0;
+    border-radius: 24px;
     background: var(--glass-bg), color-mix(in srgb, var(--bg) 92%, transparent);
   }
   .case__close {
@@ -415,5 +469,18 @@
 }
 .case__frame-nib {
   fill: var(--ink);
-  filter: var(--ink-glow);
+  filter: var(--ink-glow) drop-shadow(0 0 6px rgb(var(--pen-glow)));
+}
+
+/* thumbnail clone that flies from the card into its slot */
+.case__clone {
+  position: fixed;
+  z-index: 2;
+  margin: 0;
+  aspect-ratio: auto;
+  height: auto;
+  pointer-events: none;
+}
+.case__frame {
+  z-index: 3;
 }

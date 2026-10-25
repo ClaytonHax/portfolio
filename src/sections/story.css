@@ -1,0 +1,293 @@
+/* STORY agent: chapters, process, ticker, marquee. Tokens only. */
+
+/* ── chapter dividers ─────────────────────────────────────── */
+.chapter {
+  position: relative;
+  width: 100%;
+  max-width: var(--max, 1440px);
+  margin-inline: auto;
+  padding: clamp(56px, 11vh, 120px) var(--gutter, 24px) clamp(8px, 2vh, 24px);
+  overflow: hidden;
+}
+.chapter__rule {
+  height: 1px;
+  background: var(--ink, var(--text));
+  opacity: 0.55;
+  transform-origin: left center;
+  filter: var(--ink-glow, none);
+}
+.chapter__row {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(12px, 2.4vw, 32px);
+  margin-top: clamp(14px, 2vh, 24px);
+}
+.chapter__num {
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: clamp(0.85rem, 1.1vw, 1.1rem);
+  letter-spacing: 0.14em;
+  color: var(--accent);
+}
+.chapter__label {
+  --f: 0;
+  font-size: clamp(2rem, 6.4vw, 5.6rem);
+  font-weight: 600;
+  font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; /* static font: variable-font overlaps show through text-stroke */
+  letter-spacing: -0.04em;
+  line-height: 1;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--text-faint);
+  background: linear-gradient(var(--text), var(--text)) no-repeat left center / calc(var(--f) * 1%) 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  padding-bottom: 0.08em;
+}
+.chapter.is-done .chapter__rule { transform: none; }
+.chapter.is-done .chapter__label { --f: 100; }
+
+/* ── chapter ticker ───────────────────────────────────────── */
+.ticker {
+  position: fixed;
+  left: clamp(16px, 2.2vw, 36px);
+  bottom: clamp(16px, 2.6vh, 32px);
+  z-index: 30;
+  height: 1.6em;
+  min-width: 14em;
+  overflow: hidden;
+  pointer-events: none;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+.ticker__item {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  gap: 0.9em;
+  white-space: nowrap;
+  line-height: 1.6;
+}
+.ticker__n { color: var(--accent); }
+@media (max-width: 899px) {
+  .ticker { display: none; }
+}
+
+/* ── stack marquee ────────────────────────────────────────── */
+.mq {
+  display: grid;
+  gap: clamp(6px, 1.4vh, 14px);
+  padding-block: clamp(20px, 5vh, 56px) clamp(12px, 3vh, 32px);
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.mq__row { overflow: hidden; }
+.mq__track {
+  display: flex;
+  align-items: center;
+  width: max-content;
+  will-change: transform;
+}
+.mq__w {
+  font-size: clamp(2rem, 5.2vw, 4.6rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--text-faint);
+}
+.mq__w--a { color: var(--accent); }
+.mq__dot {
+  flex: none;
+  width: 0.5rem;
+  height: 0.5rem;
+  margin-inline: clamp(16px, 2.6vw, 40px);
+  border-radius: 50%;
+  background: var(--ink, var(--text));
+  filter: var(--ink-glow, none);
+}
+.mq--static .mq__track { width: auto; flex-wrap: wrap; row-gap: 0; padding-inline: var(--gutter, 24px); }
+.mq--static { -webkit-mask-image: none; mask-image: none; }
+
+/* ── work image parallax (translate/scale properties compose with the hover transform) ── */
+#work .shot img.px-img {
+  translate: var(--px, 0%) 0;
+  scale: 1.1;
+}
+
+/* ── process chapter ──────────────────────────────────────── */
+.proc-stop {
+  position: relative;
+  height: 64px;
+  width: 100%;
+}
+.proc-exit {
+  position: relative;
+  height: 2px;
+  width: 100%;
+  pointer-events: none;
+}
+#process { z-index: 2; }
+#process:not(.proc--h) { position: relative; }
+.proc__bg, .proc__numeral { display: none; }
+
+/* vertical (mobile / reduced motion) */
+.proc__stage { padding: clamp(40px, 8vh, 80px) var(--gutter, 16px); max-width: var(--max, 1440px); margin-inline: auto; }
+.proc__head { margin-bottom: clamp(20px, 4vh, 40px); }
+.proc__head .eyebrow { margin: 0 0 8px; }
+.proc__lane { display: none; }
+.proc__panels { list-style: none; margin: 0; padding: 0; display: grid; gap: 16px; }
+.proc__panel { position: relative; padding: 22px 22px 26px; border-radius: 24px; }
+.proc__num {
+  display: block;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 0.85rem;
+  letter-spacing: 0.14em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.proc__title { margin: 0 0 10px; font-size: clamp(1.4rem, 5.5vw, 1.9rem); letter-spacing: -0.03em; line-height: 1.1; }
+.proc__desc { margin: 0; color: var(--text-dim); max-width: 34ch; line-height: 1.5; }
+.proc__stroke { display: block; width: 120px; height: 12px; margin-top: 18px; overflow: visible; }
+.proc__stroke path {
+  fill: none;
+  stroke: var(--ink, var(--text));
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+  filter: var(--ink-glow, none);
+}
+.proc__node { display: none; }
+
+/* horizontal (desktop, pinned) */
+.proc--h {
+  height: 100vh;
+  height: 100svh;
+  overflow: hidden;
+}
+.proc--h .proc__bg {
+  display: block;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(60% 70% at 20% 30%, color-mix(in srgb, var(--blob-1) 22%, transparent), transparent 70%),
+    radial-gradient(50% 60% at 85% 80%, color-mix(in srgb, var(--blob-3) 16%, transparent), transparent 70%),
+    var(--bg);
+}
+.proc--h .proc__numeral {
+  display: block;
+  position: absolute;
+  left: 4vw;
+  bottom: 6vh;
+  z-index: 0;
+  font-size: clamp(14rem, 38vw, 40rem);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 0.8;
+  color: transparent;
+  -webkit-text-stroke: 1px var(--rule, rgba(255, 255, 255, 0.12));
+  pointer-events: none;
+  user-select: none;
+  will-change: transform;
+}
+.proc--h .proc__stage {
+  position: relative;
+  z-index: 1;
+  height: 100%;
+  max-width: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.proc--h .proc__head {
+  padding: clamp(84px, 13vh, 130px) var(--gutter) 0;
+  margin: 0;
+}
+.proc--h .proc__viewport { flex: 1; position: relative; min-height: 0; }
+.proc--h .proc__track {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: 100%;
+  width: max-content;
+  padding-inline: calc((100vw - var(--pw)) / 2);
+  --pw: min(520px, 80vw);
+  will-change: transform;
+}
+.proc--h .proc__panels { display: flex; gap: clamp(48px, 8vw, 140px); align-items: stretch; margin-bottom: calc(9vh + 90px); }
+.proc--h .proc__panel {
+  flex: none;
+  width: var(--pw);
+  padding: clamp(28px, 4vh, 44px);
+  border-radius: 28px;
+}
+.proc--h .proc__stroke { display: none; }
+.proc--h .proc__title { font-size: clamp(1.8rem, 3.2vw, 2.8rem); }
+.proc--h .proc__desc { font-size: clamp(1rem, 1.25vw, 1.2rem); }
+.proc--h .proc__lift,
+.proc--h .proc__desc {
+  opacity: 0.18;
+  transform: translateY(22px);
+  transition: opacity 0.7s var(--ease-out, ease), transform 0.7s var(--ease-out, ease);
+}
+.proc--h .proc__panel.is-on .proc__lift,
+.proc--h .proc__panel.is-on .proc__desc { opacity: 1; transform: none; }
+.proc--h .proc__desc { transition-delay: 0.1s; }
+.proc--h .proc__lane {
+  display: block;
+  position: absolute;
+  left: 0;
+  bottom: 9vh;
+  width: 100%;
+  height: 70px;
+  pointer-events: none;
+}
+.proc--h .proc__line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.proc--h .proc__path {
+  display: block;
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  filter: var(--ink-glow, none);
+}
+.proc--h .proc__nib {
+  display: block;
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--ink);
+  box-shadow: 0 0 14px 4px var(--pen-glow-c, color-mix(in srgb, var(--accent) 70%, transparent));
+  pointer-events: none;
+}
+.proc--h .proc__node {
+  display: block;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  margin-top: -6px;
+  width: 12px;
+  height: 12px;
+  margin-left: -6px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--ink);
+  transition: background 0.4s, box-shadow 0.4s;
+}
+.proc--h .proc__node.is-on { background: var(--ink); box-shadow: 0 0 10px var(--accent); }
+
+@media (prefers-reduced-motion: reduce) {
+  .proc__lift, .proc__desc { transition: none; }
+}

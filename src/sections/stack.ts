@@ -8,7 +8,7 @@ export function initStack(): void {
   let n = 0
   sec.innerHTML = `
     <div class="container sec-in">
-      ${sectionHead('04', 'Stack', 'What I build with', 'stack-title')}
+      ${sectionHead('06', 'Toolbox', 'What I build with.', 'stack-title')}
       <div class="stack glass rv" data-pen-stop="stack" data-pen-side="through">
         ${Object.entries(profile.skills)
           .map(

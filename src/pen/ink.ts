@@ -8,6 +8,10 @@ export interface Ink {
   /** pen tip at document position; call every frame while the pen is moving */
   tip(x: number, y: number): void
   burst(x: number, y: number, n: number, speed?: number, size?: number): void
+  /** faint fast-fading ink dot at viewport (client) coordinates, for the nib cursor */
+  trail(x: number, y: number): void
+  /** while held the tip glow, flecks and trail are suppressed */
+  hold(on: boolean): void
   resize(): void
   refreshTheme(): void
   destroy(): void
@@ -42,6 +46,13 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
   let running = false
   let lastT = 0
   let carry = 0
+  let held = false
+  const TN = 48
+  const tx = new Float32Array(TN)
+  const ty = new Float32Array(TN)
+  const tl = new Float32Array(TN)
+  let thead = 0
+  let tAlive = 0
 
   const now = () => performance.now()
 
@@ -85,7 +96,7 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
   }
 
   function tip(x: number, y: number) {
-    if (reducedMotion) return
+    if (reducedMotion || held) return
     const t = now()
     const dist = hasTip ? Math.hypot(x - lastX, y - lastY) : 0
     lastX = x
@@ -102,8 +113,23 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
     wake()
   }
 
+  function trail(x: number, y: number) {
+    if (reducedMotion || held) return
+    const i = (thead = (thead + 1) % TN)
+    if (tl[i] <= 0) tAlive++
+    tx[i] = x
+    ty[i] = y
+    tl[i] = 1
+    wake()
+  }
+
+  function hold(on: boolean) {
+    held = on
+    if (on) hasTip = false
+  }
+
   function burst(x: number, y: number, n: number, speed = 7, sz = 3.2) {
-    if (reducedMotion) return
+    if (reducedMotion || held) return
     emit(x, y, lowPower ? Math.ceil(n / 2) : n, speed, sz)
     wake()
   }
@@ -119,15 +145,15 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
     ctx.globalCompositeOperation = night ? 'lighter' : 'source-over'
 
     // glow eases in while the pen moves and out shortly after it stops
-    const moving = t - lastTipT < 160
+    const moving = !held && t - lastTipT < 160
     glow += ((moving ? 1 : 0) - glow) * Math.min(1, dt * (moving ? 14 : 7))
     if (glow > 0.01 && hasTip) {
       const x = tipX
       const y = tipY - sy
-      const r = 26
+      const r = 20
       const g = ctx.createRadialGradient(x, y, 0, x, y, r)
-      g.addColorStop(0, `rgba(255,255,255,${0.95 * glow})`)
-      g.addColorStop(0.35, `rgba(${night ? glowRGB : '255,255,255'},${0.42 * glow})`)
+      g.addColorStop(0, `rgba(255,255,255,${0.7 * glow})`)
+      g.addColorStop(0.35, `rgba(${night ? glowRGB : '255,255,255'},${0.3 * glow})`)
       g.addColorStop(1, `rgba(${glowRGB},0)`)
       ctx.fillStyle = g
       ctx.beginPath()
@@ -156,7 +182,26 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
     }
     ctx.globalCompositeOperation = 'source-over'
 
-    if (!moving && glow <= 0.01 && alive <= 0) {
+    // nib trail: viewport-space dots, <= .25 opacity, gone in ~400ms
+    if (tAlive > 0) {
+      const tdec = dt / 0.4
+      for (let i = 0; i < TN; i++) {
+        const l = tl[i]
+        if (l <= 0) continue
+        const nl = l - tdec
+        tl[i] = nl
+        if (nl <= 0) {
+          tAlive--
+          continue
+        }
+        ctx.fillStyle = `rgba(${partRGB},${0.25 * nl})`
+        ctx.beginPath()
+        ctx.arc(tx[i], ty[i], 1.2 + 1.3 * nl, 0, 6.283)
+        ctx.fill()
+      }
+    }
+
+    if (!moving && glow <= 0.01 && alive <= 0 && tAlive <= 0) {
       ctx.clearRect(0, 0, W, H)
       running = false
       gsap.ticker.remove(frame)
@@ -172,6 +217,8 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
   return {
     tip,
     burst,
+    trail,
+    hold,
     resize,
     refreshTheme,
     destroy() {

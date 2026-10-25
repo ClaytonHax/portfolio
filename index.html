@@ -1,16 +1,16 @@
 <!doctype html>
-<html lang="en" data-theme="light">
+<html lang="en" data-theme="night">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Clayton Banks — I build AI products</title>
-    <meta name="description" content="Clayton Banks is a full-stack developer in Harare, Zimbabwe, building AI products people use: an offline AI agent, an AI farming advisor, and a hackathon-winning opportunity app for young Zimbabweans." />
+    <title>Clayton Banks — Problem solver. App builder.</title>
+    <meta name="description" content="Clayton Banks is a full-stack developer in Harare, Zimbabwe who turns real-world problems into fast, powerful apps — from a hackathon-winning jobs app to a farming advisor and a college maintenance platform." />
     <link rel="canonical" href="https://clayton-portfolio-three.vercel.app/" />
-    <meta name="theme-color" content="#e3e9f5" />
+    <meta name="theme-color" content="#14070a" />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://clayton-portfolio-three.vercel.app/" />
-    <meta property="og:title" content="Clayton Banks — I build AI products" />
-    <meta property="og:description" content="Full-stack developer in Harare building AI products: SABINE, Ask Simon, Pathway and more." />
+    <meta property="og:title" content="Clayton Banks — Problem solver. App builder." />
+    <meta property="og:description" content="Full-stack developer in Harare turning real-world problems into fast, powerful apps: SABINE, Ask Simon, Pathway and more." />
     <meta property="og:image" content="https://clayton-portfolio-three.vercel.app/og.png" />
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
@@ -18,7 +18,7 @@
       // Set the theme before first paint to avoid a flash. Mirrors src/core/theme.ts.
       try {
         var t = localStorage.getItem('cb-theme')
-        if (t !== 'light' && t !== 'night') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'light'
+        if (t !== 'light' && t !== 'night') t = 'night'
         document.documentElement.dataset.theme = t
       } catch (e) {}
       document.documentElement.classList.add('js')
@@ -29,7 +29,7 @@
         "@type": "Person",
         "name": "Clayton Banks",
         "url": "https://clayton-portfolio-three.vercel.app/",
-        "jobTitle": "Full-stack developer",
+        "jobTitle": "Full-stack developer & problem solver",
         "homeLocation": { "@type": "Place", "name": "Harare, Zimbabwe" },
         "sameAs": ["https://github.com/ClaytonHax"]
       }
@@ -50,7 +50,7 @@
       <div id="pen-layer" aria-hidden="true"></div>
 
       <section id="intro" data-section="intro" aria-labelledby="intro-title">
-        <h1 id="intro-title" class="sr-only">Clayton Banks — I build AI products</h1>
+        <h1 id="intro-title" class="sr-only">Clayton Banks — Problem solver. App builder.</h1>
         <!-- Owner: pen. Reserved area the intro handwriting is laid out inside. -->
         <div id="intro-stage" aria-hidden="true"></div>
         <!-- Owner: sections. Role line, location, scroll cue, shown after intro:done. -->
@@ -59,6 +59,8 @@
 
       <!-- Owner: sections. Each renders its content and places data-pen-stop anchors. -->
       <section id="about" data-section="about" aria-labelledby="about-title"></section>
+      <!-- Owner: story (src/sections/chapters.ts) fills #process, the pinned "How I work" chapter. -->
+      <section id="process" data-section="process" aria-labelledby="process-title"></section>
       <section id="work" data-section="work" aria-labelledby="work-title"></section>
       <section id="more" data-section="more" aria-labelledby="more-title"></section>
       <section id="stack" data-section="stack" aria-labelledby="stack-title"></section>

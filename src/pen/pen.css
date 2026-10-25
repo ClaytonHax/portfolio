@@ -26,7 +26,8 @@ html {
 }
 
 .pen-art {
-  filter: var(--ink-glow);
+  /* tight, soft glow so cursive edges stay crisp */
+  filter: drop-shadow(0 0 1.5px rgba(var(--pen-glow), 0.45)) drop-shadow(0 0 7px rgba(var(--pen-glow), 0.2));
 }
 .pen-fill {
   fill: var(--ink);
@@ -92,4 +93,32 @@ html {
 }
 .pen-skip:hover {
   color: var(--text);
+}
+
+/* Ink-nib cursor (desktop, fine pointer) */
+.pen-nib {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent-ink, var(--ink));
+  z-index: var(--z-ink);
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s var(--ease-out, ease), scale 0.2s var(--ease-out, ease);
+  will-change: transform;
+}
+.pen-nib.is-on {
+  opacity: 0.85;
+}
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .pen-nib {
+    display: none;
+  }
+}
+.pen-sig .pen-fill {
+  fill: var(--accent-ink, var(--ink));
+  stroke: var(--accent-ink, var(--ink));
 }

@@ -19,6 +19,8 @@ export interface BusEvents {
   'case:close': void
   /** Layout changed in a way that moves anchors (fonts loaded, images loaded, filter changed). Pen rebuilds its path. */
   'layout:change': void
+  /** A section has taken over the drawing (e.g. a pinned horizontal chapter). While on, the pen hides its tip and ink. */
+  'pen:hold': { on: boolean }
 }
 
 type Handler<T> = (payload: T) => void
