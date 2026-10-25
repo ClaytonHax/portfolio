@@ -256,9 +256,13 @@ html.js .nav__pill:not(.is-in) {
   color: var(--ink);
 }
 .nav__name {
-  height: 24px;
+  height: 32px;
   width: auto;
   overflow: visible;
+  /* a stroke on top of the fill thickens Sacramento's hairlines so the logo reads at nav size */
+  stroke: currentColor;
+  stroke-width: 7;
+  stroke-linejoin: round;
 }
 .nav__name-txt {
   font-weight: 600;
@@ -266,7 +270,7 @@ html.js .nav__pill:not(.is-in) {
 }
 @media (min-width: 1024px) {
   .nav__name {
-    height: 30px;
+    height: 40px;
   }
 }
 .nav__brand-line {
