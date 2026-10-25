@@ -12,7 +12,8 @@ import { createInk } from './ink'
 import { initCursor } from './cursor'
 import { initSignature } from './signature'
 
-const SESSION_KEY = 'cb-intro'
+/** scroll position saved on unload, so a reload can tell whether it was at the top before the browser restores it */
+const SCROLL_KEY = 'cb-y'
 /** where the pen tip sits while scrolling, as a fraction of the viewport height */
 const TIP_FRAC = 0.62
 
@@ -291,11 +292,6 @@ export async function initPen(): Promise<void> {
     skipEvents.forEach((ev) => window.removeEventListener(ev, onSkipEvent))
     skipBtn?.remove()
     skipBtn = null
-    try {
-      sessionStorage.setItem(SESSION_KEY, '1')
-    } catch {
-      /* private mode */
-    }
     // Skipping fast-forwards through the whole timeline; make sure the drawn state is final.
     intro?.all.forEach((s) => (s.set(1), s.back?.(1)))
     lockScroll(false)
@@ -343,14 +339,22 @@ export async function initPen(): Promise<void> {
   ScrollTrigger.create({ start: 0, end: 'max', onUpdate: onScroll })
 
   /* ── go ── */
-  let seen = false
+  // The intro replays on every load that starts at the top, including reloads; never mid-page.
+  let lastY = 0
   try {
-    seen = sessionStorage.getItem(SESSION_KEY) === '1'
+    lastY = Number(sessionStorage.getItem(SCROLL_KEY)) || 0
   } catch {
-    /* ignore */
+    /* private mode */
   }
+  window.addEventListener('pagehide', () => {
+    try {
+      sessionStorage.setItem(SCROLL_KEY, String(Math.round(window.scrollY)))
+    } catch {
+      /* private mode */
+    }
+  })
   const deepLinked = window.location.hash.length > 1
-  const autoplay = !reducedMotion && !seen && !deepLinked && window.scrollY < 40
+  const autoplay = !reducedMotion && !deepLinked && window.scrollY < 40 && lastY < 40
 
   if (!autoplay) {
     phase = 'done'
