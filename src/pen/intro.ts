@@ -348,11 +348,13 @@ function introEase(t: number): number {
 }
 
 const TAU = 0.03 // pen-tip low-pass time constant, s
+/** playback rate over the authored pace (~6.5s name + ~1.2s swash at 1) */
+const SPEED = 1.35
 
 export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Timeline {
   const segs = intro.all
   const total = segs.reduce((a, s) => a + s.cost, 0)
-  const dur = total * VMAX
+  const dur = (total * VMAX) / SPEED
   let fx = 0
   let fy = 0
   let ft = 0
