@@ -67,14 +67,14 @@ export const projects: Project[] = [
   {
     id: 'pathway',
     title: 'Pathway',
-    tagline: '1st place hackathon winner. Swipe-to-match mentoring for students.',
+    tagline: '1st place hackathon winner. Swipe to find internships, gigs and training.',
     description:
-      'Won first place at a hackathon. Students and mentors swipe on each other; mutual interest creates a match and opens real-time chat. Upload a CV and it pre-fills your profile.',
+      'Won first place at the Arundel hackathon. A swipe-based app that helps young Zimbabweans find internships, volunteering, gigs, learnerships and training. Employers post roles and manage applicants; seekers get matches ranked to their skills and goals.',
     highlights: [
-      '1st place overall at the hackathon',
-      'Mutual-swipe matching on Firestore',
-      'Real-time chat with onSnapshot',
-      'CV parsing from PDF and Word',
+      '1st place at the Arundel hackathon',
+      'Swipe deck with skill-based match scores',
+      'Employer side: post roles, applicant pipeline',
+      'Express interest straight to WhatsApp',
     ],
     stack: ['React', 'TypeScript', 'Firebase', 'Framer Motion', 'pdf.js'],
     category: 'Web App',

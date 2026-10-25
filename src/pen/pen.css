@@ -1,0 +1,95 @@
+/* Pen: layout for #intro / #intro-stage, the single line layer and the ink canvas. */
+html {
+  scrollbar-gutter: stable;
+}
+#main {
+  position: relative;
+}
+/* The line sits under every section; glass cards blur it, open background shows it. */
+#main > section {
+  position: relative;
+  z-index: var(--z-content);
+}
+#pen-layer {
+  position: absolute;
+  inset: 0;
+  z-index: var(--z-line);
+  pointer-events: none;
+  overflow: visible;
+}
+#pen-layer > svg {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: block;
+  overflow: visible;
+}
+
+.pen-art {
+  filter: var(--ink-glow);
+}
+.pen-fill {
+  fill: var(--ink);
+  stroke: var(--ink);
+}
+.pen-stroke {
+  fill: none;
+  stroke: var(--ink);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+#intro {
+  display: flex;
+  flex-direction: column;
+  min-height: 100svh;
+}
+#intro-stage {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 62svh;
+}
+#intro-meta {
+  flex: none;
+  position: relative;
+}
+
+#ink {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: var(--z-ink);
+  pointer-events: none;
+}
+
+.pen-skip {
+  position: fixed;
+  left: 50%;
+  bottom: max(20px, env(safe-area-inset-bottom));
+  z-index: var(--z-nav);
+  transform: translate(-50%, 8px);
+  min-height: 44px;
+  padding: 0 18px;
+  border: 1px solid var(--chip-border);
+  border-radius: 999px;
+  background: var(--chip-bg);
+  color: var(--text-dim);
+  font-family: var(--font-mono);
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  opacity: 0;
+  pointer-events: none;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  transition: opacity 0.5s var(--ease-out), transform 0.5s var(--ease-out);
+}
+.pen-skip.is-on {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(-50%, 0);
+}
+.pen-skip:hover {
+  color: var(--text);
+}

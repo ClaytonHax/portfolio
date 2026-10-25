@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "glyphs": "node scripts/glyphs.mjs"
   },
   "dependencies": {
     "gsap": "^3.15.0",

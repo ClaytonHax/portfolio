@@ -10,7 +10,7 @@ export const profile = {
   tagline: 'I ship real software for real people — local LLM agents, AI farming advisors, production PWAs.',
   about: [
     'I build things end to end: the model prompt, the API route, the Firestore rules, the animation on the button.',
-    'Most of my work runs in production for real users — a college estates department, Zimbabwean farmers, a yearbook committee, a small business selling mould-prevention pouches. Pathway, my hackathon build, took first place.',
+    'Most of my work runs in production for real users — a college estates department, Zimbabwean farmers, a yearbook committee, a small business selling mould-prevention pouches. Pathway, my hackathon build for young job-seekers, took first place.',
     'Lately I spend most of my time on AI systems that run locally, talk straight, and actually do things.',
   ],
   stats: [
