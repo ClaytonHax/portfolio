@@ -169,10 +169,85 @@ export function initCase(): void {
     return `inset(${t}px ${rt}px ${b}px ${l}px round 24px)`
   }
 
+  /* The pen draws the panel frame: one rounded-rect, two dashes growing from the point nearest the card. */
+  const SVGNS = 'http://www.w3.org/2000/svg'
+  let frame: SVGSVGElement | null = null
+
+  function dropFrame(): void {
+    if (!frame) return
+    gsap.killTweensOf(frame)
+    frame.remove()
+    frame = null
+  }
+
+  function makeFrame(from: HTMLElement | null): { svg: SVGSVGElement; origin: { x: number; y: number }; draw: gsap.core.Tween } {
+    const pr = panel.getBoundingClientRect()
+    const wr = wrap.getBoundingClientRect()
+    const w = pr.width
+    const h = pr.height
+    const r = 28
+    const svg = document.createElementNS(SVGNS, 'svg')
+    svg.setAttribute('class', 'case__frame')
+    svg.setAttribute('aria-hidden', 'true')
+    svg.setAttribute('viewBox', `0 0 ${w} ${h}`)
+    svg.style.cssText = `left:${pr.left - wr.left}px;top:${pr.top - wr.top}px;width:${w}px;height:${h}px`
+    const d = `M${r + 1} 1H${w - r - 1}A${r - 1} ${r - 1} 0 0 1 ${w - 1} ${r}V${h - r}A${r - 1} ${r - 1} 0 0 1 ${w - r} ${h - 1}H${r + 1}A${r - 1} ${r - 1} 0 0 1 1 ${h - r}V${r}A${r - 1} ${r - 1} 0 0 1 ${r + 1} 1Z`
+    const mk = (tag: string, cls: string) => {
+      const el = document.createElementNS(SVGNS, tag)
+      el.setAttribute('class', cls)
+      svg.appendChild(el)
+      return el
+    }
+    const fwd = mk('path', 'case__frame-line') as SVGPathElement
+    const back = mk('path', 'case__frame-line') as SVGPathElement
+    fwd.setAttribute('d', d)
+    back.setAttribute('d', d)
+    const nibA = mk('circle', 'case__frame-nib')
+    const nibB = mk('circle', 'case__frame-nib')
+    ;[nibA, nibB].forEach((n) => n.setAttribute('r', '3.5'))
+    wrap.appendChild(svg)
+    frame = svg
+
+    const L = fwd.getTotalLength()
+    // start at the perimeter point nearest the card (or top centre when there is none)
+    const fr = from?.getBoundingClientRect()
+    const tx = fr ? Math.min(Math.max(fr.left + fr.width / 2 - pr.left, 0), w) : w / 2
+    const ty = fr ? Math.min(Math.max(fr.top + fr.height / 2 - pr.top, 0), h) : 0
+    let s0 = 0
+    let best = Infinity
+    for (let i = 0; i < 240; i++) {
+      const pt = fwd.getPointAtLength((L * i) / 240)
+      const dist = (pt.x - tx) ** 2 + (pt.y - ty) ** 2
+      if (dist < best) { best = dist; s0 = (L * i) / 240 }
+    }
+    const origin = fwd.getPointAtLength(s0)
+    const wrapL = (v: number) => ((v % L) + L) % L
+    const state = { len: 0 }
+    const paint = () => {
+      const len = state.len
+      fwd.style.strokeDasharray = `${len} ${L - len}`
+      fwd.style.strokeDashoffset = `${-s0}`
+      back.style.strokeDasharray = `${len} ${L - len}`
+      back.style.strokeDashoffset = `${-(s0 - len)}`
+      const a = fwd.getPointAtLength(wrapL(s0 + len))
+      const b = fwd.getPointAtLength(wrapL(s0 - len))
+      nibA.setAttribute('cx', `${a.x}`); nibA.setAttribute('cy', `${a.y}`)
+      nibB.setAttribute('cx', `${b.x}`); nibB.setAttribute('cy', `${b.y}`)
+    }
+    paint()
+    const draw = gsap.to(state, { len: L / 2, duration: 0.85, ease: 'power2.inOut', onUpdate: paint })
+    draw.pause()
+    return { svg, origin, draw }
+  }
+
   function animateOpen(from?: HTMLElement | null): void {
     busy?.kill()
-    const reveal = content.querySelectorAll('[data-reveal]')
-    const tl = gsap.timeline({ onComplete: () => { busy = null; gsap.set([panel, reveal], { clearProps: 'all' }) } })
+    dropFrame()
+    const reveal = content.querySelectorAll('[data-reveal]:not(.case__hero)')
+    const hero = content.querySelector<HTMLElement>('.case__hero')
+    const tl = gsap.timeline({
+      onComplete: () => { busy = null; dropFrame(); gsap.set([panel, reveal, hero], { clearProps: 'all' }) },
+    })
     busy = tl
     tl.fromTo(backdrop, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: 'power2.out' }, 0)
     if (reducedMotion) {
@@ -181,20 +256,40 @@ export function initCase(): void {
     }
     if (isMobile()) {
       tl.fromTo(panel, { yPercent: 100 }, { yPercent: 0, duration: 0.6, ease: 'expo.out' }, 0)
-      tl.fromTo(reveal, { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, 0.2)
+      tl.fromTo([hero, ...reveal], { y: 24, opacity: 0 }, { y: 0, opacity: 1, duration: 0.6, ease: 'power3.out', stagger: 0.06 }, 0.2)
       return
     }
-    const rect = from?.isConnected ? from : null
-    if (rect) {
-      tl.fromTo(panel, { clipPath: cardClip(rect), opacity: 0.6 }, { clipPath: 'inset(0px 0px 0px 0px round 28px)', opacity: 1, duration: 0.7, ease: 'expo.out' }, 0)
-    } else {
-      tl.fromTo(panel, { opacity: 0, y: 24, scale: 0.97 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'expo.out' }, 0)
+    const src = from?.isConnected ? from : null
+    const { svg, origin, draw } = makeFrame(src)
+    const pr = panel.getBoundingClientRect()
+    const reach = Math.hypot(Math.max(origin.x, pr.width - origin.x), Math.max(origin.y, pr.height - origin.y)) + 4
+    // line first
+    tl.add(draw.play(), 0.05)
+    tl.fromTo(svg, { opacity: 0 }, { opacity: 1, duration: 0.12 }, 0.05)
+    // glass floods outward from where the line started, behind the stroke
+    tl.fromTo(
+      panel,
+      { clipPath: `circle(0px at ${origin.x}px ${origin.y}px)` },
+      { clipPath: `circle(${reach}px at ${origin.x}px ${origin.y}px)`, duration: 1, ease: 'power2.out' },
+      0.2,
+    )
+    // content fills in
+    if (hero) {
+      tl.fromTo(hero, { clipPath: 'inset(0 0 100% 0)' }, { clipPath: 'inset(0 0 0% 0)', duration: 0.75, ease: 'expo.out' }, 0.65)
     }
-    tl.fromTo(reveal, { y: 28, opacity: 0 }, { y: 0, opacity: 1, duration: 0.7, ease: 'power3.out', stagger: 0.07 }, 0.18)
+    tl.fromTo(
+      reveal,
+      { y: 28, opacity: 0, filter: 'blur(6px)' },
+      { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.7, ease: 'power3.out', stagger: 0.07 },
+      0.75,
+    )
+    // frame settles away once closed
+    tl.to(svg, { opacity: 0, duration: 0.5, ease: 'power1.inOut' }, 1.0)
   }
 
   function animateClose(done: () => void): void {
     busy?.kill()
+    dropFrame()
     const from = opener?.isConnected ? opener : null
     const tl = gsap.timeline({ onComplete: done })
     busy = tl
@@ -288,6 +383,7 @@ export function initCase(): void {
     } else if (currentId) close()
   }
   window.addEventListener('hashchange', fromHash)
+  window.addEventListener('resize', dropFrame)
 
   // The pen's intro releases scroll when it finishes; keep it locked while a case is open.
   on('intro:done', () => { if (currentId) lockScroll(true) })

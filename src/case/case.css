@@ -398,3 +398,22 @@
     font-size: 0.9rem;
   }
 }
+
+/* Pen-drawn frame over the panel during open */
+.case__frame {
+  position: absolute;
+  overflow: visible;
+  pointer-events: none;
+  fill: none;
+}
+.case__frame-line {
+  fill: none;
+  stroke: var(--ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: var(--ink-glow);
+}
+.case__frame-nib {
+  fill: var(--ink);
+  filter: var(--ink-glow);
+}
