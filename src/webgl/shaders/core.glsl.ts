@@ -50,7 +50,7 @@ void main(){
   float tw = .75 + .25 * sin(uTime * (1. + aRand.x * 2.) + aRand.y * 40.);
   vec3 nrm = normalize(mat3(viewMatrix * modelMatrix) * normalize(p + 1e-4));
   float rim = 1. - abs(nrm.z);
-  vAlpha = uOpacity * tw * (.3 + .7 * aRand.y) * .36 * (.7 + 1.1 * rim * rim);
+  vAlpha = uOpacity * tw * (.3 + .7 * aRand.y) * .36 * (.45 + 2.2 * rim * rim);
   float sz = (.9 + 2.3 * aRand.w * aRand.w) * uSize * (1. + travel * .6 + f * .5);
   gl_PointSize = max(sz * uPR * (7. / -mv.z), 1.);
 }`

@@ -19,7 +19,7 @@ const LOOKS: Record<string, Partial<Look>> = {
   work: { x: 0.74, y: 0.5, scale: 0.3, shape: 0, opacity: 0.8, grid: 1, intensity: 1.1, packets: 1, camY: -0.1, lookY: -0.7, tilt: 0.1 },
   archive: { x: 0.52, y: 0, scale: 0.8, shape: 3, opacity: 0.5, tilt: 1.05, packets: 0.5 },
   stack: { x: 0.55, y: 0, scale: 0.85, shape: 2, opacity: 0.6, tilt: 0.0, packets: 0.4 },
-  contact: { x: 0, y: 0.04, scale: 1.3, shape: 0, opacity: 0.7, intensity: 1.5, tilt: 0.2, packets: 0.9 },
+  contact: { x: 0, y: 0.04, scale: 1.05, shape: 0, opacity: 0.7, intensity: 1.5, tilt: 0.2, packets: 0.9 },
 }
 const MOBILE_OPACITY = 0.45
 
@@ -63,7 +63,6 @@ export async function createStage(canvas: HTMLCanvasElement) {
   spin.add(core.points, rings.group)
   anchor.add(spin, shell.mesh, pulse.mesh)
   scene.add(stars.points, packets.points, grid.mesh, anchor)
-  if (location.search.includes("dbgcore")) { (window as any).__core = core; shell.mesh.visible = false; rings.group.visible = false }
 
   let w = innerWidth, h = innerHeight
   const post = createPost(renderer, scene, camera, w, h)

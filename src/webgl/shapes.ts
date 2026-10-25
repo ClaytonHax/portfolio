@@ -23,7 +23,7 @@ export async function buildShapes(n: number): Promise<Shapes> {
     const core = rnd() < 0.22
     let r = (core ? 1.9 * 0.85 * Math.cbrt(rnd()) : 1.9 * (1 - 0.25 * Math.pow(rnd(), 3.5))) * (1 + 0.045 * fold)
     r *= 1 - 0.07 * Math.exp(-x * x * 30) * Math.max(0, y + 0.3)
-    blob[i * 3] = x * r * 0.96; blob[i * 3 + 1] = y * r * 0.88; blob[i * 3 + 2] = z * r * 1.08
+    blob[i * 3] = x * r; blob[i * 3 + 1] = y * r * 0.95; blob[i * 3 + 2] = z * r * 1.08
   }
 
   // 1: (2,3) torus knot tube
