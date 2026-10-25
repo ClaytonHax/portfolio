@@ -63,7 +63,7 @@ export async function createStage(canvas: HTMLCanvasElement) {
   spin.add(core.points, rings.group)
   anchor.add(spin, shell.mesh, pulse.mesh)
   scene.add(stars.points, packets.points, grid.mesh, anchor)
-  if (location.search.includes("dbgcore")) { shell.mesh.visible = false; rings.group.visible = false }
+  if (location.search.includes("dbgcore")) { (window as any).__core = core; shell.mesh.visible = false; rings.group.visible = false }
 
   let w = innerWidth, h = innerHeight
   const post = createPost(renderer, scene, camera, w, h)
@@ -89,7 +89,7 @@ export async function createStage(canvas: HTMLCanvasElement) {
   let section = 'hero'
   const ptr = { x: 0, y: 0, tx: 0, ty: 0 }
   let sv = 0, svTarget = 0, progress = 0, glitch = 0, hoverT = 0, hover = 0, scrollOffset = 0
-  let time = 0, lastPulse = 0
+  let time = 0, lastPulse = 0, ptrSeen = false, ptrK = 0
 
   const setSection = (id: string) => {
     section = id
@@ -103,7 +103,7 @@ export async function createStage(canvas: HTMLCanvasElement) {
     progress = p
     svTarget = Math.min(Math.abs(velocity) / 28, 1)
   })
-  on('pointer', ({ x, y }) => { ptr.tx = x; ptr.ty = y })
+  on('pointer', ({ x, y }) => { ptr.tx = x; ptr.ty = y; ptrSeen = true })
   on('glitch', ({ strength }) => { glitch = Math.max(glitch, Math.min(strength, 1.2)) })
   on('boot:done', () => { if (!reducedMotion) pulse.fire(0.9) })
   on('project:hover', ({ id, accent }) => {
@@ -168,7 +168,8 @@ export async function createStage(canvas: HTMLCanvasElement) {
     const pu = core.uniforms
     pu.uPointer.value.set(ptr.x * halfH0 * aspect * (dist / CAM_Z) + camera.position.x, ptr.y * halfH0 + camera.position.y, 0)
     pu.uPointerR.value = 1.5 * Math.max(0.55, Math.min(1, cur.scale + 0.2))
-    pu.uPointerK.value = reducedMotion ? 0 : 1
+    ptrK += ((ptrSeen && !reducedMotion ? 1 : 0) - ptrK) * (dt > 0 ? k(3) : 1)
+    pu.uPointerK.value = ptrK
 
     // uniforms
     pu.uTime.value = time; pu.uVel.value = sv; pu.uGlitch.value = glitch; pu.uHover.value = hover
@@ -202,7 +203,7 @@ export async function createStage(canvas: HTMLCanvasElement) {
   let raf = 0, last = 0, running = false
   const tick = (now: number) => {
     raf = requestAnimationFrame(tick)
-    const dt = Math.min((now - last) / 1000, 0.05); last = now
+    const dt = Math.min(Math.max((now - last) / 1000, 0), 0.12); last = now
     time += dt
     scrollOffset += sv * dt * 14
     if (section === 'contact' && time - lastPulse > 3.5) { lastPulse = time; pulse.fire(0.55) }
