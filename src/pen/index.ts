@@ -124,9 +124,9 @@ export async function initPen(): Promise<void> {
   const tmp: Pt = { x: 0, y: 0 }
 
   const hooks = {
-    pen(p: Pt) {
+    pen(p: Pt, inking: boolean) {
       if (held) return
-      ink.tip(p.x, p.y + mainTop)
+      ink.tip(p.x, p.y + mainTop, !inking)
     },
     burst(p: Pt) {
       if (held) return
@@ -166,7 +166,7 @@ export async function initPen(): Promise<void> {
     intro = buildIntro(introG, layout)
     baseLw = layout.lw
     jPath.style.strokeWidth = baseLw.toFixed(2)
-    if (phase === 'done') intro.all.forEach((s) => (s.set(1), s.back?.(1)))
+    if (phase === 'done') intro.all.forEach((s) => s.set(1))
     else {
       intro.all.forEach((s) => s.set(0))
       if (phase === 'playing' || phase === 'skipping') {
@@ -293,7 +293,7 @@ export async function initPen(): Promise<void> {
     skipBtn?.remove()
     skipBtn = null
     // Skipping fast-forwards through the whole timeline; make sure the drawn state is final.
-    intro?.all.forEach((s) => (s.set(1), s.back?.(1)))
+    intro?.all.forEach((s) => s.set(1))
     lockScroll(false)
     emit('intro:done', { skipped })
     ScrollTrigger.refresh()

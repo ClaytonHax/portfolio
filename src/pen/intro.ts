@@ -1,4 +1,4 @@
-import { GLYPHS, NS, buildBlock, measure, toWorld, type Block, type BlockSpec, type GlyphSet, type Pt, type Rect } from './glyph'
+import { GLYPHS, NS, STROKES, buildBlock, lenFrac, measure, profileOf, toWorld, type BlockSpec, type GlyphSet, type Profile, type Pt, type Rect, type SetKey, type StrokeRef } from './glyph'
 import { gsap } from '../core/motion'
 
 /* ─────────────────────────────────────────────────────────────
@@ -14,7 +14,9 @@ interface Box {
   y2: number
 }
 type Link =
-  | { kind: 'gap'; a: Pt; b: Pt; k: number }
+  /** between words on one line: the pen lifts and glides across the space */
+  | { kind: 'gap' }
+  /** end of line one to the start of line two: an inked return swing */
   | { kind: 'ret'; E: Pt; Ps: Pt; gapY: number; sw: number; k: number }
 
 interface Word {
@@ -27,6 +29,8 @@ export interface Layout {
   tall: boolean
   W: number
   k: number
+  /** px per glyph unit */
+  s: number
   lw: number
   blocks: BlockSpec[]
   words: Word[]
@@ -53,9 +57,13 @@ function glyphBox(spec: BlockSpec, local: number[]): Box {
 }
 const baselineOf = (spec: BlockSpec) => toWorld(spec, { x: 0, y: 200 }).y
 
-function spec(set: GlyphSet, s: number, cx: number, oy: number): BlockSpec {
+/** Mask stroke width in glyph units. Strokes at this width cover >99.9% of every filled glyph pixel. */
+export const MASK_W = 18
+
+function spec(key: SetKey, s: number, cx: number, oy: number): BlockSpec {
+  const set = GLYPHS[key]
   const b = set.box
-  return { set, idxs: allIdx(set), s, ox: cx - (b[2] * s) / 2, oy, vx: b[0], vw: b[2], maskW: 24, inkW: 2.1 }
+  return { key, set, idxs: allIdx(set), s, ox: cx - (b[2] * s) / 2, oy, vx: b[0], vw: b[2], maskW: MASK_W, inkW: 2.1 }
 }
 
 /** `stage` is the #intro-stage rect in main space; `W` the main width. */
@@ -95,7 +103,7 @@ function layoutWide(st: Rect, W: number): Layout {
   const k = (s * GLYPHS.Clayton.box[2]) / 400
   const cx = st.x + st.w / 2
   const top = st.y + st.h * 0.4 - h / 2
-  const name = spec(GLYPHS.Name, s, cx, top)
+  const name = spec('Name', s, cx, top)
   const first = GLYPHS.Name.paths.findIndex((p) => p.w === 1)
   const words: Word[] = [
     { block: 0, first: 0, last: first - 1 },
@@ -103,12 +111,10 @@ function layoutWide(st: Rect, W: number): Layout {
   ]
   const wb = words.map((x) => glyphBox(name, range(x.first, x.last)))
   const base = baselineOf(name)
-  const links: Layout['links'] = [
-    { kind: 'gap', a: { x: wb[0].x2 - 2 * k, y: base - 3 * k }, b: { x: wb[1].x1 + 3 * k, y: base - 3 * k }, k },
-  ]
+  const links: Layout['links'] = [{ kind: 'gap' }]
   const xr = wb[1].x2 - 0.1 * w * 0.2
   const sw = swashPath(xr - 0.02 * w, wb[0].x1 + 0.03 * w, base, h)
-  return { tall: false, W, k, lw: clamp(3.4 * k, 2.6, 5.2), blocks: [name], words, links, swash: sw.d, F: sw.F, tan: sw.tan }
+  return { tall: false, W, k, s, lw: clamp(3.4 * k, 2.6, 5.2), blocks: [name], words, links, swash: sw.d, F: sw.F, tan: sw.tan }
 }
 
 function layoutTall(st: Rect, W: number): Layout {
@@ -118,26 +124,30 @@ function layoutTall(st: Rect, W: number): Layout {
   const build = (f: number, yTop: number): { l: Layout; bottom: number } => {
     const s = (Math.min(W * 0.8, 560) * f) / cb[2]
     const k = (s * cb[2]) / 400
-    const b0 = spec(GLYPHS.Clayton, s, cx, yTop)
+    const b0 = spec('Clayton', s, cx, yTop)
     const asc = 200 - bb[1]
-    const pitch = (200 - cb[1]) * s * 0.4 + (cb[1] + cb[3] - 200) * s + asc * s * 0.35 + 26 * k
+    const pitch = (200 - cb[1]) * s * 0.4 + (cb[1] + cb[3] - 200) * s + asc * s * 0.35 + 26 * k + 16 * s
     const base0 = baselineOf(b0)
-    const b1 = spec(GLYPHS.Banks, s, cx, base0 + pitch - (200 - bb[1]) * s)
+    const b1 = spec('Banks', s, cx, base0 + pitch - (200 - bb[1]) * s)
     const words: Word[] = [
       { block: 0, first: 0, last: GLYPHS.Clayton.paths.length - 1 },
       { block: 1, first: 0, last: GLYPHS.Banks.paths.length - 1 },
     ]
-    const w0 = glyphBox(b0, allIdx(GLYPHS.Clayton))
     const w1 = glyphBox(b1, allIdx(GLYPHS.Banks))
     const base1 = baselineOf(b1)
-    const E: Pt = { x: w0.x2 - 2 * k, y: base0 - 3 * k }
-    const Ps: Pt = { x: w1.x1 + 4 * k, y: base1 - 3 * k }
+    // the swing leaves the last pen point of "Clayton" and lands on the first point of "Banks" (the B's stem top)
+    const lastG = STROKES.Clayton[STROKES.Clayton.length - 1]
+    const lastS = lastG[lastG.length - 1].p
+    const e = lastS[lastS.length - 1]
+    const p0 = STROKES.Banks[0][0].p[0]
+    const E: Pt = toWorld(b0, { x: e[0], y: e[1] })
+    const Ps: Pt = toWorld(b1, { x: p0[0], y: p0[1] })
     const gapY = base0 + (cb[1] + cb[3] - 200) * s + 8 * k
     const links: Layout['links'] = [{ kind: 'ret', E, Ps, gapY, sw: Math.min(110 * k, 60), k }, undefined]
     const bw = w1.x2 - w1.x1
     const sw = swashPath(w1.x2 - 0.03 * bw, w1.x1 + 0.02 * bw, base1, w1.y2 - w1.y1)
     return {
-      l: { tall: true, W, k, lw: clamp(3.4 * k, 2.4, 5), blocks: [b0, b1], words, links, swash: sw.d, F: sw.F, tan: sw.tan },
+      l: { tall: true, W, k, s, lw: clamp(3.4 * k, 2.4, 5), blocks: [b0, b1], words, links, swash: sw.d, F: sw.F, tan: sw.tan },
       bottom: sw.F.y,
     }
   }
@@ -150,17 +160,30 @@ function layoutTall(st: Rect, W: number): Layout {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   DOM + segments
+   DOM + segments. Every segment is one stretch of pen travel with a duration in seconds (curvature-weighted).
    ───────────────────────────────────────────────────────────── */
 
 export interface Seg {
-  /** pen travel in px */
-  travel: number
-  /** draw the stroke up to u in 0..1 (glyphs reveal their outward edge only) */
+  /** seconds of pen time at nominal speed */
+  cost: number
+  /** false while the pen travels without ink (flecks pause) */
+  ink: boolean
+  /** draw the stroke up to time fraction u in 0..1 */
   set(u: number): void
-  /** reveal the glyph's back edge, v in 0..1, after the pen has left it */
-  back?(v: number): void
+  /** pen tip, main space */
   point(u: number): Pt
+}
+
+/** the scratch structure buildIntro uses before costs become seconds */
+interface Piece {
+  seg: Seg
+  /** raw weight, glyph units */
+  w: number
+  a: Pt
+  b: Pt
+  /** the pen must lift to reach this piece */
+  lift: boolean
+  fixed?: number
 }
 
 function strokePath(parent: SVGElement, d: string, w: number): SVGPathElement {
@@ -176,51 +199,71 @@ function returnPath(l: Extract<Link, { kind: 'ret' }>, W: number): string {
   const { E, Ps, gapY, sw, k } = l
   const cx = (x: number) => clamp(x, 4, W - 4)
   const P = (x: number, y: number) => `${f1(cx(x))} ${f1(y)}`
+  // out right of the last pen point, down to the gap between the lines, back along it,
+  // then dive onto the B's stem top from the upper right, the way the stem itself starts
+  const p1x = E.x - 0.36 * sw
+  const h = Math.max(10 * k, 0.45 * (Ps.y - gapY))
+  const c2x = Ps.x + 1.5 * h
   return (
-    `M ${f1(E.x)} ${f1(E.y)} C ${P(E.x + sw, E.y + 10 * k)} ${P(E.x + 0.82 * sw, gapY)} ${P(E.x - 0.36 * sw, gapY)} ` +
-    `C ${P(E.x - 1.82 * sw, gapY)} ${P(Ps.x - 0.18 * sw, gapY - 10 * k)} ${P(Ps.x - 0.45 * sw, (gapY + Ps.y) / 2)} ` +
-    `C ${P(Ps.x - 0.64 * sw, Ps.y - 10 * k)} ${P(Ps.x - 0.18 * sw, Ps.y + 6 * k)} ${f1(Ps.x)} ${f1(Ps.y)}`
+    `M ${f1(E.x)} ${f1(E.y)} C ${P(E.x + sw, E.y + 10 * k)} ${P(E.x + 0.82 * sw, gapY)} ${P(p1x, gapY)} ` +
+    `C ${P(p1x - 0.55 * Math.max(0, p1x - c2x), gapY)} ${P(c2x, Ps.y - h)} ${P(Ps.x, Ps.y)}`
   )
 }
 
-/** A glyph outline runs out along one edge and back along the other; the thick mask means the outward half
- *  already covers the letter, so the pen follows only that half and the back edge is revealed after the fact. */
-function glyphSeg(b: Block, i: number): Seg {
-  const p = b.masks[i]
-  const len = b.lens[i]
+/** A stroke already drawn in main space (connector, swash): dash-revealed, curvature-weighted. */
+function pathSeg(p: SVGPathElement, r0: number): { seg: Seg; len: number; a: Pt; b: Pt; prof: Profile } {
+  const len = p.getTotalLength()
+  const prof = profileOf(p, len, r0)
   p.style.strokeDasharray = `${len} ${len}`
-  let fwd = 0
-  let bk = 0
-  const apply = () => {
-    p.style.strokeDashoffset = String(len * (1 - Math.min(1, 0.5 * fwd + (fwd >= 1 ? 0.5 * bk : 0))))
-  }
-  return {
-    travel: len * b.spec.s * 0.5,
+  p.style.strokeDashoffset = String(len)
+  const seg: Seg = {
+    cost: 0,
+    ink: true,
     set(u) {
-      fwd = u
-      if (u < 1) bk = 0
-      apply()
-    },
-    back(v) {
-      bk = v
-      apply()
+      p.style.strokeDashoffset = String(len * (1 - lenFrac(prof, u)))
     },
     point(u) {
-      return b.toWorld(p.getPointAtLength(len * 0.5 * u))
+      const q = p.getPointAtLength(len * lenFrac(prof, u))
+      return { x: q.x, y: q.y }
+    },
+  }
+  const a = p.getPointAtLength(0)
+  const b = p.getPointAtLength(len)
+  return { seg, len, prof, a: { x: a.x, y: a.y }, b: { x: b.x, y: b.y } }
+}
+
+/** One stroke of a glyph: the mask path draws, the tip rides the centerline. */
+function glyphSeg(ref: StrokeRef, toW: (p: Pt) => Pt): Seg {
+  return {
+    cost: 0,
+    ink: true,
+    set(u) {
+      ref.reveal(lenFrac(ref.prof, u))
+    },
+    point(u) {
+      return toW(ref.at(lenFrac(ref.prof, u)))
     },
   }
 }
 
-function strokeSeg(p: SVGPathElement): Seg {
-  const len = p.getTotalLength()
-  p.style.strokeDasharray = `${len} ${len}`
+/** Pen travelling between two points without drawing: a short arc, eased. */
+function glideSeg(a: Pt, b: Pt, ink: boolean): Seg {
+  const dx = b.x - a.x
+  const dy = b.y - a.y
+  const d = Math.hypot(dx, dy) || 1
+  const h = ink ? 0 : Math.min(0.28 * d, 40)
+  // arc bows upward (off the page), whichever way the pen is moving
+  const nx = dy / d
+  const ny = -dx / d
+  const sgn = ny > 0 ? -1 : 1
   return {
-    travel: len,
-    set(u) {
-      p.style.strokeDashoffset = String(len * (1 - u))
-    },
+    cost: 0,
+    ink,
+    set() {},
     point(u) {
-      return p.getPointAtLength(len * u)
+      const e = u * u * (3 - 2 * u)
+      const bow = Math.sin(Math.PI * e) * h * sgn
+      return { x: a.x + dx * e + nx * bow, y: a.y + dy * e + ny * bow }
     },
   }
 }
@@ -234,58 +277,82 @@ export interface IntroDOM {
   tan: Pt
 }
 
+/** Seconds the name (all letters, joins and the return swing) takes; the swash then takes SWASH_T. */
+const NAME_T = 6.2
+const SWASH_T = 1.2
+/** pen jumps shorter than this (glyph units) are bridged with ink still down; longer ones are lifts */
+const JOIN_U = 34
+
 export function buildIntro(art: SVGElement, layout: Layout): IntroDOM {
-  const { lw, W } = layout
-  const blocks = layout.blocks.map((s) => buildBlock(s, art))
-  const all: Seg[] = []
+  const { lw, W, s } = layout
+  const blocks = layout.blocks.map((sp) => buildBlock(sp, art))
+  const pieces: Piece[] = []
   layout.words.forEach((w, wi) => {
     const b = blocks[w.block]
-    for (let i = w.first; i <= w.last; i++) all.push(glyphSeg(b, i))
+    for (let i = w.first; i <= w.last; i++) {
+      for (const ref of b.refs[i]) {
+        pieces.push({ seg: glyphSeg(ref, b.toWorld), w: ref.prof.weighted, a: b.toWorld(ref.a), b: b.toWorld(ref.b), lift: ref.lift })
+      }
+    }
     const link = layout.links[wi]
-    if (!link) return
-    if (link.kind === 'gap') {
-      const { a, b: bb, k } = link
-      all.push(strokeSeg(strokePath(art, `M ${f1(a.x)} ${f1(a.y)} C ${f1(a.x + 10 * k)} ${f1(a.y + 5 * k)} ${f1(bb.x - 10 * k)} ${f1(bb.y + 5 * k)} ${f1(bb.x)} ${f1(bb.y)}`, lw * 0.62)))
-    } else {
-      all.push(strokeSeg(strokePath(art, returnPath(link, W), lw * 0.85)))
+    if (link?.kind === 'ret') {
+      const r = pathSeg(strokePath(art, returnPath(link, W), lw * 0.85), 30 * s)
+      pieces.push({ seg: r.seg, w: r.prof.weighted / s, a: r.a, b: r.b, lift: false })
     }
   })
-  all.push(strokeSeg(strokePath(art, layout.swash, lw)))
-  return { layout, all, F: layout.F, tan: layout.tan }
+  const sw = pathSeg(strokePath(art, layout.swash, lw), 30 * s)
+  pieces.push({ seg: sw.seg, w: 0, a: sw.a, b: sw.b, lift: true, fixed: SWASH_T })
+
+  // bridge every gap between consecutive pieces
+  const seq: Piece[] = []
+  pieces.forEach((p, i) => {
+    const prev = pieces[i - 1]
+    if (prev) {
+      const d = Math.hypot(p.a.x - prev.b.x, p.a.y - prev.b.y) / s
+      if (d > 2.5) {
+        const ink = d < JOIN_U && !p.lift
+        seq.push({ seg: glideSeg(prev.b, p.a, ink), w: ink ? d * 0.9 : 22 + d * 0.55, a: prev.b, b: p.a, lift: false })
+      }
+    }
+    seq.push(p)
+  })
+  const wName = seq.reduce((a, p) => a + (p.fixed ? 0 : p.w), 0)
+  seq.forEach((p) => (p.seg.cost = p.fixed ?? (p.w * NAME_T) / wName))
+  return { layout, all: seq.map((p) => p.seg), F: layout.F, tan: layout.tan }
 }
 
 /* ─────────────────────────────────────────────────────────────
-   Playback: ONE tween over every segment at constant pen speed.
+   Playback: ONE tween over every segment; constant base speed, eased only at the very start and end.
    ───────────────────────────────────────────────────────────── */
 
 export interface PlayHooks {
-  /** called every frame with the (low-passed) pen position, main space, while drawing */
-  pen(p: Pt): void
+  /** called every frame with the (low-passed) pen position, main space, while drawing; `inking` false while the pen travels lifted */
+  pen(p: Pt, inking: boolean): void
   burst(p: Pt): void
   finish(): void
 }
 
-/** Accelerates over the first 6%, settles over the last 10%, constant speed between. */
+const EASE_IN = 0.05
+const EASE_OUT = 0.05
+const VMAX = 1 / (1 - EASE_IN / 2 - EASE_OUT / 2)
+
+/** Gentle acceleration over the first 5%, settling over the last 5%, constant speed between. */
 function introEase(t: number): number {
-  const a = 0.06
-  const b = 0.1
-  const vmax = 1 / (1 - a / 2 - b / 2)
+  const a = EASE_IN
+  const b = EASE_OUT
   if (t <= 0) return 0
   if (t >= 1) return 1
-  if (t < a) return (vmax * t * t) / (2 * a)
-  if (t > 1 - b) return 1 - (vmax * (1 - t) * (1 - t)) / (2 * b)
-  return vmax * (a / 2 + (t - a))
+  if (t < a) return (VMAX * t * t) / (2 * a)
+  if (t > 1 - b) return 1 - (VMAX * (1 - t) * (1 - t)) / (2 * b)
+  return VMAX * (a / 2 + (t - a))
 }
 
 const TAU = 0.03 // pen-tip low-pass time constant, s
-const BACK_T = 0.22 // seconds for a glyph's back edge to fill in once the pen has left it
 
 export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Timeline {
   const segs = intro.all
-  const total = segs.reduce((a, s) => a + s.travel, 0)
-  const speed = 1100 * intro.layout.k
-  const dur = clamp(total / speed, 3.2, 5)
-  const doneAt: number[] = segs.map(() => -1)
+  const total = segs.reduce((a, s) => a + s.cost, 0)
+  const dur = total * VMAX
   let fx = 0
   let fy = 0
   let ft = 0
@@ -295,7 +362,6 @@ export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Tim
   tl.add(() => {
     segs.forEach((s) => s.set(0))
     primed = false
-    doneAt.fill(-1)
   })
   tl.fromTo(
     o,
@@ -310,18 +376,17 @@ export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Tim
         const pos = o.v * total
         let acc = 0
         let pen: Pt | null = null
+        let inking = true
         for (let i = 0; i < segs.length; i++) {
           const s = segs[i]
-          const u = clamp((pos - acc) / s.travel, 0, 1)
+          const u = clamp((pos - acc) / s.cost, 0, 1)
           s.set(u)
-          if (u > 0 && u < 1) pen = s.point(u)
-          else if (u >= 1 && s.back) {
-            if (doneAt[i] < 0) doneAt[i] = now
-            s.back(clamp((now - doneAt[i]) / 1000 / BACK_T, 0, 1))
-          } else if (u < 1) doneAt[i] = -1
-          acc += s.travel
+          if (u > 0 && u < 1) {
+            pen = s.point(u)
+            inking = s.ink
+          }
+          acc += s.cost
         }
-        if (o.v >= 1) segs.forEach((s) => s.back?.(1))
         if (!pen) return
         if (!primed) {
           fx = pen.x
@@ -335,12 +400,12 @@ export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Tim
           fx += (pen.x - fx) * a
           fy += (pen.y - fy) * a
         }
-        hooks.pen({ x: fx, y: fy })
+        hooks.pen({ x: fx, y: fy }, inking)
       },
     },
   )
   tl.add(() => {
-    segs.forEach((s) => (s.set(1), s.back?.(1)))
+    segs.forEach((s) => s.set(1))
     hooks.burst(intro.F)
     hooks.finish()
   })

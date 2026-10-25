@@ -6,7 +6,8 @@ import { gsap, lowPower, reducedMotion } from '../core/motion'
  */
 export interface Ink {
   /** pen tip at document position; call every frame while the pen is moving */
-  tip(x: number, y: number): void
+  /** `still`: glow only, no flecks (pen travelling without ink) */
+  tip(x: number, y: number, still?: boolean): void
   burst(x: number, y: number, n: number, speed?: number, size?: number): void
   /** faint fast-fading ink dot at viewport (client) coordinates, for the nib cursor */
   trail(x: number, y: number): void
@@ -95,7 +96,7 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
     gsap.ticker.add(frame)
   }
 
-  function tip(x: number, y: number) {
+  function tip(x: number, y: number, still = false) {
     if (reducedMotion || held) return
     const t = now()
     const dist = hasTip ? Math.hypot(x - lastX, y - lastY) : 0
@@ -105,6 +106,11 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
     tipY = y
     hasTip = true
     lastTipT = t
+    if (still) {
+      carry = 0
+      wake()
+      return
+    }
     // more flecks the faster the pen moves
     carry += (lowPower ? 0.9 : 1.8) + Math.min(5, dist / 14) * (lowPower ? 0.5 : 1)
     const n = Math.floor(carry)
