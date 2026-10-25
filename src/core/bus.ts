@@ -1,25 +1,24 @@
 /**
- * Tiny typed event bus so the three module groups (webgl / projects / ui)
- * never import each other directly.
+ * Tiny typed event bus so the module groups (pen / sections / case) never import each other.
  */
+export type Theme = 'light' | 'night'
+
 export interface BusEvents {
-  /** Boot overlay finished; hero intro animations may start. */
-  'boot:done': void
-  /** Active section changed (id matches data-section in index.html). */
-  'section:change': { id: string }
-  /** Whole-page scroll, 0..1, plus signed velocity (px/frame-ish, from Lenis). */
-  scroll: { progress: number; velocity: number; scrollY: number }
-  /** Pointer in normalised device coords (-1..1), y up. */
-  pointer: { x: number; y: number; clientX: number; clientY: number }
-  /** A project card is hovered (null when hover ends) — WebGL may react. */
-  'project:hover': { id: string | null; accent?: string }
-  /** Project modal opened / closed. */
-  'project:open': { id: string }
-  'project:close': void
-  /** Ask the cursor to change state. */
-  'cursor:state': { state: 'default' | 'link' | 'view' | 'drag' | 'text'; label?: string }
-  /** Short global "glitch" pulse — WebGL bumps chromatic aberration, UI may flicker. */
-  glitch: { strength: number }
+  /** Intro finished playing (or was skipped). The scroll-driven line is live after this. */
+  'intro:done': { skipped: boolean }
+  /** The pen reached a stop on the line (data-pen-stop id). Fired again after a rewind past it. */
+  'pen:reach': { id: string }
+  /** The pen moved back above a stop it had reached (scrolling up). Sections may reverse their reveal. */
+  'pen:leave': { id: string }
+  /** Overall journey progress 0..1 (after the intro). */
+  'pen:progress': { p: number }
+  /** Theme changed (after data-theme is set on <html>). */
+  'theme:change': { theme: Theme }
+  /** Open a case study. `from` is the element to expand from and return focus to. */
+  'case:open': { id: string; from?: HTMLElement | null }
+  'case:close': void
+  /** Layout changed in a way that moves anchors (fonts loaded, images loaded, filter changed). Pen rebuilds its path. */
+  'layout:change': void
 }
 
 type Handler<T> = (payload: T) => void

@@ -1,49 +1,80 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" data-theme="light">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Clayton Banks — Developer</title>
-    <meta name="description" content="Clayton Banks — full-stack developer and AI builder from Harare, Zimbabwe. Local LLM agents, AI products and production web apps." />
-    <meta name="theme-color" content="#0a0a0b" />
-    <meta property="og:title" content="Clayton Banks — Developer" />
-    <meta property="og:description" content="Local LLM agents, AI products and production web apps." />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Clayton Banks — I build AI products</title>
+    <meta name="description" content="Clayton Banks is a full-stack developer in Harare, Zimbabwe, building AI products people use: an offline AI agent, an AI farming advisor, and a hackathon-winning mentoring app." />
+    <link rel="canonical" href="https://clayton-portfolio-three.vercel.app/" />
+    <meta name="theme-color" content="#e3e9f5" />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://clayton-portfolio-three.vercel.app/" />
+    <meta property="og:title" content="Clayton Banks — I build AI products" />
+    <meta property="og:description" content="Full-stack developer in Harare building AI products: SABINE, Ask Simon, Pathway and more." />
+    <meta property="og:image" content="https://clayton-portfolio-three.vercel.app/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet" />
+    <script>
+      // Set the theme before first paint to avoid a flash. Mirrors src/core/theme.ts.
+      try {
+        var t = localStorage.getItem('cb-theme')
+        if (t !== 'light' && t !== 'night') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'night' : 'light'
+        document.documentElement.dataset.theme = t
+      } catch (e) {}
+      document.documentElement.classList.add('js')
+    </script>
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Person",
+        "name": "Clayton Banks",
+        "url": "https://clayton-portfolio-three.vercel.app/",
+        "jobTitle": "Full-stack developer",
+        "homeLocation": { "@type": "Place", "name": "Harare, Zimbabwe" },
+        "sameAs": ["https://github.com/ClaytonHax"]
+      }
+    </script>
   </head>
   <body>
-    <a class="skip-link" href="#main">Skip to content</a>
+    <a class="skip-link" href="#work">Skip to projects</a>
 
-    <!-- Fixed, full-viewport WebGL background (owned by src/webgl) -->
-    <canvas id="webgl" aria-hidden="true"></canvas>
-    <!-- Post overlays: scanlines / vignette / noise (CSS, owned by src/ui) -->
-    <div class="fx-overlay" aria-hidden="true"></div>
+    <!-- Background gradient blobs. Owner: sections (src/sections/background.ts). -->
+    <div id="bg" aria-hidden="true"></div>
 
-    <!-- Boot sequence overlay (owned by src/ui/boot.ts) -->
-    <div id="boot" role="status" aria-live="polite"></div>
-
-    <!-- Custom cursor (owned by src/ui/cursor.ts) -->
-    <div id="cursor" aria-hidden="true"></div>
-
-    <!-- Nav (owned by src/ui/nav.ts) -->
+    <!-- Floating glass nav. Owner: sections. -->
     <header id="nav"></header>
 
     <main id="main">
-      <!-- Each section is an empty mount point. The module that owns it renders its content. -->
-      <section id="hero" data-section="hero" aria-label="Intro"></section>
+      <!-- The whole line (intro handwriting + scroll-driven path) is drawn into this layer,
+           which spans the full height of <main>. Owner: pen (src/pen). -->
+      <div id="pen-layer" aria-hidden="true"></div>
+
+      <section id="intro" data-section="intro" aria-labelledby="intro-title">
+        <h1 id="intro-title" class="sr-only">Clayton Banks — I build AI products</h1>
+        <!-- Owner: pen. Reserved area the intro handwriting is laid out inside. -->
+        <div id="intro-stage" aria-hidden="true"></div>
+        <!-- Owner: sections. Role line, location, scroll cue, shown after intro:done. -->
+        <div id="intro-meta"></div>
+      </section>
+
+      <!-- Owner: sections. Each renders its content and places data-pen-stop anchors. -->
       <section id="about" data-section="about" aria-labelledby="about-title"></section>
       <section id="work" data-section="work" aria-labelledby="work-title"></section>
-      <section id="archive" data-section="archive" aria-labelledby="archive-title"></section>
+      <section id="more" data-section="more" aria-labelledby="more-title"></section>
       <section id="stack" data-section="stack" aria-labelledby="stack-title"></section>
       <section id="contact" data-section="contact" aria-labelledby="contact-title"></section>
     </main>
 
     <footer id="footer"></footer>
 
-    <!-- Project detail dialog (owned by src/projects) -->
-    <div id="project-modal"></div>
+    <!-- Pen tip glow + ink flecks. Fixed to the viewport. Owner: pen. -->
+    <canvas id="ink" aria-hidden="true"></canvas>
+
+    <!-- Case study dialog. Owner: case (src/case). -->
+    <div id="case-root"></div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

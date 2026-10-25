@@ -1,31 +1,34 @@
+import './styles/tokens.css'
 import './styles/base.css'
+import { initTheme } from './core/theme'
 import { initMotion, ScrollTrigger } from './core/motion'
 import { emit } from './core/bus'
-import { initWebGL } from './webgl'
-import { initProjects } from './projects'
-import { initUI, runBoot } from './ui'
+import { initSections } from './sections'
+import { initCase } from './case'
+import { initPen } from './pen'
 
 async function start() {
-  document.body.classList.add('is-booting')
-
-  // Render all DOM first so ScrollTrigger measures real layout.
-  initUI()
-  initProjects()
+  initTheme()
+  // DOM first, so the pen can measure real anchors.
+  initSections()
+  initCase()
   initMotion()
 
-  const canvas = document.getElementById('webgl') as HTMLCanvasElement
+  // Anchors move when fonts arrive; wait for them before laying out the line.
+  await document.fonts.ready
+  ScrollTrigger.refresh()
+
   try {
-    await initWebGL(canvas)
+    await initPen()
   } catch (err) {
-    // No WebGL: the site still works, it just loses the 3D layer.
-    console.warn('[webgl] disabled:', err)
-    canvas.remove()
+    // The line is decoration. Without it, everything still reads and works.
+    console.warn('[pen] disabled:', err)
+    document.documentElement.classList.add('no-pen')
+    emit('intro:done', { skipped: true })
   }
 
-  await runBoot()
-  document.body.classList.remove('is-booting')
-  ScrollTrigger.refresh()
-  emit('boot:done')
+  // Late image loads can shift anchors.
+  window.addEventListener('load', () => emit('layout:change'))
 }
 
 start()

@@ -1,45 +1,4 @@
-/* Design tokens — the single source of truth. Modules must use these, never raw hex. */
-:root {
-  --bg: #0a0a0b;
-  --bg-elev: #111113;
-  --bg-elev-2: #17171a;
-  --line: #24242a;
-  --line-strong: #34343c;
-  --text: #ece9e4;
-  --text-dim: #a19fa6;
-  --text-faint: #6c6a72;
-
-  --red: #ff3b3b;
-  --red-hot: #ff5a4a;
-  --red-deep: #c4161c;
-  --red-glow: rgba(255, 59, 59, 0.35);
-  --red-wash: rgba(255, 59, 59, 0.08);
-
-  --ok: #4ade80;
-  --warn: #fbbf24;
-
-  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
-  --font-display: 'Space Grotesk', system-ui, sans-serif;
-
-  --radius: 10px;
-  --radius-lg: 16px;
-  --gutter: clamp(16px, 4vw, 48px);
-  --max: 1280px;
-  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
-  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
-
-  /* z-index scale */
-  --z-canvas: 0;
-  --z-content: 10;
-  --z-overlay-fx: 20;
-  --z-nav: 30;
-  --z-modal: 40;
-  --z-cursor: 50;
-  --z-boot: 60;
-
-  color-scheme: dark;
-}
-
+/* Global reset + shared primitives (.glass, .chip, .container, .sr-only). Owned by the lead. */
 *,
 *::before,
 *::after {
@@ -49,94 +8,76 @@
 html {
   background: var(--bg);
   -webkit-text-size-adjust: 100%;
+  scroll-behavior: auto;
 }
 html.lenis,
 html.lenis body {
   height: auto;
 }
-.lenis.lenis-smooth {
-  scroll-behavior: auto !important;
-}
-.lenis.lenis-stopped {
+.lenis.lenis-stopped,
+html.is-locked {
   overflow: hidden;
 }
 
 body {
   margin: 0;
+  min-height: 100vh;
   background: var(--bg);
   color: var(--text);
-  font-family: var(--font-display);
-  font-size: 16px;
+  font-family: var(--font-sans);
+  font-size: var(--step-0);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-}
-body.is-booting {
-  overflow: hidden;
+  transition: background-color 0.6s var(--ease-out), color 0.6s var(--ease-out);
 }
 
-::selection {
-  background: var(--red);
-  color: var(--bg);
-}
-
-a {
-  color: inherit;
-}
 img {
   max-width: 100%;
   display: block;
+  height: auto;
+}
+a {
+  color: inherit;
 }
 button {
   font: inherit;
   color: inherit;
 }
+h1,
+h2,
+h3,
+h4 {
+  text-wrap: balance;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  margin: 0;
+}
+p {
+  text-wrap: pretty;
+}
 
 :focus-visible {
-  outline: 2px solid var(--red);
+  outline: 2px solid var(--focus);
   outline-offset: 3px;
-  border-radius: 4px;
+  border-radius: 6px;
 }
 
 .skip-link {
   position: fixed;
-  top: 8px;
-  left: 8px;
-  z-index: calc(var(--z-boot) + 1);
-  padding: 8px 14px;
-  background: var(--red);
+  left: 12px;
+  top: 12px;
+  z-index: calc(var(--z-dialog) + 1);
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: var(--text);
   color: var(--bg);
-  font-family: var(--font-mono);
+  font-weight: 600;
+  text-decoration: none;
   transform: translateY(-200%);
 }
 .skip-link:focus {
   transform: none;
-}
-
-#webgl {
-  position: fixed;
-  inset: 0;
-  width: 100vw;
-  height: 100vh;
-  z-index: var(--z-canvas);
-  display: block;
-  pointer-events: none;
-}
-
-main,
-#footer {
-  position: relative;
-  z-index: var(--z-content);
-}
-
-main > section {
-  position: relative;
-  padding-inline: var(--gutter);
-}
-
-.container {
-  max-width: var(--max);
-  margin-inline: auto;
 }
 
 .sr-only {
@@ -151,81 +92,53 @@ main > section {
   border: 0;
 }
 
-/* Shared section header: "~/work $ ls -la" prompt line + big title */
-.section-head {
-  margin-bottom: clamp(32px, 6vw, 72px);
-}
-.section-head .prompt {
-  font-family: var(--font-mono);
-  font-size: 13px;
-  color: var(--text-dim);
-  letter-spacing: 0.02em;
-}
-.section-head .prompt .path {
-  color: var(--red);
-}
-.section-head h2 {
-  margin: 8px 0 0;
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: clamp(36px, 7vw, 96px);
-  line-height: 0.95;
-  letter-spacing: -0.035em;
-}
-.section-head h2 .accent {
-  color: var(--red);
+.container {
+  width: 100%;
+  max-width: var(--max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
 }
 
-/* Shared chip */
+/* Liquid glass surface. Pointer-following shine reads --mx / --my (set by JS, defaults centred-top). */
+.glass {
+  --mx: 50%;
+  --my: 0%;
+  position: relative;
+  color: var(--glass-text);
+  background: var(--glass-bg);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--glass-shadow);
+  isolation: isolate;
+}
+.glass::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(45% 60% at var(--mx) var(--my), var(--glass-shine), transparent 70%);
+  mix-blend-mode: soft-light;
+  pointer-events: none;
+  z-index: -1;
+}
+:root[data-theme='night'] .glass::after {
+  mix-blend-mode: screen;
+}
+
 .chip {
   display: inline-flex;
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  border: 1px solid var(--line-strong);
   border-radius: 999px;
+  border: 1px solid var(--chip-border);
+  background: var(--chip-bg);
   font-family: var(--font-mono);
-  font-size: 12px;
-  color: var(--text-dim);
-  background: rgba(17, 17, 19, 0.6);
-}
-
-/* Shared terminal window frame */
-.term {
-  background: rgba(14, 14, 16, 0.82);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border: 1px solid var(--line);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 59, 59, 0.03);
-}
-.term__bar {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 14px;
-  border-bottom: 1px solid var(--line);
-  color: var(--text-faint);
-  font-size: 12px;
-}
-.term__dots {
-  display: flex;
-  gap: 6px;
-}
-.term__dots i {
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  background: var(--line-strong);
-}
-.term__dots i:first-child {
-  background: var(--red);
-}
-.term__body {
-  padding: 18px 20px;
+  font-size: var(--step--1);
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 @media (prefers-reduced-motion: reduce) {

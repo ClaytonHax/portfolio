@@ -19,6 +19,8 @@ export interface Project {
   image: string
   /** accent hue tweak for procedural art, CSS color */
   accent: string
+  /** small badge shown on the card, e.g. '1st place' */
+  badge?: string
 }
 
 export const projects: Project[] = [
@@ -81,6 +83,7 @@ export const projects: Project[] = [
     url: 'https://hackerthon-six.vercel.app',
     repo: 'https://github.com/ClaytonHax/hackerthon',
     image: '/shots/pathway.webp',
+    badge: '1st place',
     accent: '#ff3b6b',
   },
   {

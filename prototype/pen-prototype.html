@@ -1,0 +1,348 @@
+<title>The Unbroken Line</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: one large stage on a graphite wall; the whole intro is a single unbroken ink line, the camera follows the pen. */
+:root {
+  --wall: #0d0e10;
+  --wall-2: #15171a;
+  --ink: #eceef0;
+  --ink-dim: #9da3aa;
+  --rule: #272a2f;
+  --mark: #eceef0;
+  --f-display: 'Bricolage Grotesque', 'Helvetica Neue', Arial, sans-serif;
+  --f-mono: 'IBM Plex Mono', ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body {
+  background: var(--wall); color: var(--ink);
+  font-family: var(--f-display); font-size: 16px; line-height: 1.55;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 72px;
+  -webkit-font-smoothing: antialiased;
+}
+.wrap { max-width: 1240px; margin-inline: auto; }
+button { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--mark); outline-offset: 3px; }
+header.top { padding-block: clamp(40px, 6vw, 72px) clamp(24px, 3vw, 36px); display: grid; gap: 16px; }
+.eyebrow { font-family: var(--f-mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-dim); }
+h1 { margin: 0; font-weight: 800; font-size: clamp(38px, 6.4vw, 80px); line-height: .95; letter-spacing: -.035em; text-wrap: balance; max-width: 16ch; }
+.lede { margin: 0; max-width: 66ch; color: var(--ink-dim); font-size: 17px; }
+
+.frame { margin: 0; border: 1px solid var(--rule); background: var(--wall-2); border-radius: 10px; overflow: hidden; }
+.frame__bar { display: flex; align-items: center; gap: 8px; padding: 6px 8px 6px 12px; border-bottom: 1px solid var(--rule); font-family: var(--f-mono); font-size: 11px; color: var(--ink-dim); flex-wrap: wrap; }
+.frame__bar span.d { width: 9px; height: 9px; border-radius: 50%; background: var(--rule); flex: none; }
+.frame__bar em { font-style: normal; margin-left: 6px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ctl { margin-left: auto; display: flex; gap: 6px; }
+.ctl button { border: 1px solid var(--rule); background: transparent; border-radius: 99px; padding: 4px 12px; min-height: 32px; font-family: var(--f-mono); font-size: 11px; cursor: pointer; }
+.ctl button:hover, .ctl button[aria-pressed="true"] { background: var(--rule); }
+.stage { position: relative; aspect-ratio: 16 / 9.6; max-width: 100%; overflow: hidden; container-type: inline-size; font-family: 'Geist', -apple-system, 'Helvetica Neue', Arial, sans-serif; }
+
+.th { position: absolute; inset: 0; overflow: hidden; background: #dfe6f3; transition: background .6s; --inkc: #ffffff; }
+.th--night { background: #06070c; }
+.blobs { position: absolute; inset: -20%; filter: blur(5cqw) saturate(1.3); transition: opacity .6s; }
+.blobs i { position: absolute; border-radius: 50%; animation: drift 14s ease-in-out infinite alternate; transition: background .6s; }
+.blobs i:nth-child(1) { width: 55%; height: 60%; left: 5%; top: 10%; background: #7aa7ff; }
+.blobs i:nth-child(2) { width: 45%; height: 55%; left: 50%; top: 5%; background: #ff8ac2; animation-delay: -4s; }
+.blobs i:nth-child(3) { width: 50%; height: 50%; left: 30%; top: 50%; background: #8ff0d0; animation-delay: -8s; }
+.th--night .blobs { opacity: .55; }
+.th--night .blobs i:nth-child(1) { background: #2b3cff } .th--night .blobs i:nth-child(2) { background: #b0177a } .th--night .blobs i:nth-child(3) { background: #00a39a }
+@keyframes drift { 50% { transform: translate(8%, 6%) scale(1.1) } 100% { transform: translate(-6%, -4%) scale(.95) } }
+
+.world { position: absolute; left: 0; top: 0; width: 100%; will-change: transform; }
+.world svg.track { display: block; width: 100%; height: auto; overflow: visible; }
+.track .ink { fill: var(--inkc); stroke: var(--inkc); }
+.track .stroke { fill: none; stroke: var(--inkc); stroke-linecap: round; stroke-linejoin: round; }
+.track .dot { fill: var(--inkc); }
+.track .lineart { filter: drop-shadow(0 .25cqw .7cqw rgba(40,50,110,.35)); }
+.th--night .track .lineart { filter: drop-shadow(0 0 .35cqw rgba(255,255,255,.75)) drop-shadow(0 0 1.4cqw rgba(120,140,255,.55)); }
+.th canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 3; }
+
+.card { position: absolute; width: 28cqw; border-radius: 2cqw; padding: 1.4cqw; opacity: 0; z-index: 2; --mx: 50%; --my: 0%; color: #10131a; overflow: hidden;
+  background: linear-gradient(160deg, rgba(255,255,255,.55), rgba(255,255,255,.18));
+  backdrop-filter: blur(18px) saturate(180%); -webkit-backdrop-filter: blur(18px) saturate(180%);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.9), inset 0 -1px 0 rgba(255,255,255,.25), 0 2cqw 4cqw -2cqw rgba(30,40,80,.35); border: 1px solid rgba(255,255,255,.55); transition: color .6s, background .6s, border-color .6s; }
+.card::after { content: ''; position: absolute; inset: 0; background: radial-gradient(45% 60% at var(--mx) var(--my), rgba(255,255,255,.7), transparent 70%); mix-blend-mode: soft-light; pointer-events: none; }
+.th--night .card { color: #f2f4ff; background: linear-gradient(160deg, rgba(255,255,255,.14), rgba(255,255,255,.04)); border-color: rgba(255,255,255,.16); box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 2cqw 5cqw -2cqw rgba(0,0,0,.8); }
+.th--night .card::after { background: radial-gradient(45% 60% at var(--mx) var(--my), rgba(160,180,255,.35), transparent 70%); mix-blend-mode: screen; }
+.card img { width: 100%; aspect-ratio: 16 / 9.4; object-fit: cover; object-position: top; border-radius: 1.1cqw; display: block; }
+.card small { display: block; margin-top: 1cqw; font-family: 'Geist Mono', monospace; font-size: max(9px, 1.05cqw); letter-spacing: .06em; text-transform: uppercase; opacity: .7; }
+.card b { display: block; margin-top: .3cqw; font-size: 2.6cqw; font-weight: 600; letter-spacing: -.03em; line-height: 1.05; }
+.card span { display: block; margin-top: .4cqw; font-size: max(10px, 1.25cqw); line-height: 1.35; opacity: .8; }
+.card--end { width: 30cqw; } .card--end b { font-size: 4.4cqw; letter-spacing: -.045em; }
+
+.after { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; padding-top: 32px; }
+.after div { border-top: 1px solid var(--rule); padding-top: 14px; }
+.after b { display: block; font-size: 18px; font-weight: 600; letter-spacing: -.01em; margin-bottom: 4px; }
+.after p { margin: 0; color: var(--ink-dim); font-size: 15px; }
+
+@media (max-width: 860px) {
+  .stage { aspect-ratio: 4 / 5.2; }
+  .card { width: 44cqw; padding: 2cqw; border-radius: 3cqw; } .card--end { width: 46cqw; }
+  .card b { font-size: 4.6cqw; } .card--end b { font-size: 7cqw; }
+  .after { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .blobs i { animation: none; } }
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Clayton Banks · portfolio intro · the unbroken line</div>
+    <h1>One stroke, from your name to your work.</h1>
+    <p class="lede">The pen writes "Clayton", carries straight on into "I build AI products", rings it with a circle, then flicks out into the path that runs past every project. It never lifts. On the real site the second half follows your scroll.</p>
+  </header>
+
+  <figure class="frame">
+    <div class="frame__bar"><span class="d"></span><span class="d"></span><span class="d"></span><em>intro · auto-playing preview</em>
+      <div class="ctl"><button id="light" aria-pressed="true">Light</button><button id="night" aria-pressed="false">Night</button><button id="replay">Replay</button></div>
+    </div>
+    <div class="stage" id="stage"></div>
+  </figure>
+
+  <section class="after" aria-label="How it becomes the full site">
+    <div><b>Intro plays once</b><p>Name, phrase and circle write themselves in about eight seconds. Any scroll or click skips straight to the end of the circle.</p></div>
+    <div><b>Then you drive the pen</b><p>After the flick, the line is tied to scrolling. Scroll down and the pen draws forward; scroll up and it un-draws.</p></div>
+    <div><b>Every stop opens</b><p>Each glass card expands into a full case study for that project, and the line resumes when you close it.</p></div>
+  </section>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script>
+const GLYPHS = /*GLYPHS*/null;
+(() => {
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const NS = 'http://www.w3.org/2000/svg';
+  const DPR = Math.min(devicePixelRatio, 2);
+  const stage = document.getElementById('stage');
+
+  const th = document.createElement('div');
+  th.className = 'th';
+  th.innerHTML = '<div class="blobs" aria-hidden="true"><i></i><i></i><i></i></div><div class="world"></div><canvas aria-hidden="true"></canvas>';
+  stage.appendChild(th);
+  const world = th.querySelector('.world'), cv = th.querySelector('canvas'), ctx = cv.getContext('2d');
+
+  /* ── 1. Place the two handwritten words (world units: 1000 = stage width) ── */
+  const NAME = { x: 300, y: 40, w: 400 }, PHR = { x: 200, y: 345, w: 600 };
+  const svg = document.createElementNS(NS, 'svg');
+  svg.setAttribute('class', 'track'); svg.setAttribute('aria-hidden', 'true');
+  world.appendChild(svg);
+  const art = document.createElementNS(NS, 'g'); art.setAttribute('class', 'lineart'); svg.appendChild(art);
+
+  let uid = 0;
+  // A word = nested <svg> of glyph outlines, revealed through a mask of thick traced strokes.
+  function placeWord(glyphs, at) {
+    const id = 'm' + ++uid, [bx, by, bw, bh] = glyphs.box, s = at.w / bw;
+    const n = document.createElementNS(NS, 'svg');
+    n.setAttribute('viewBox', glyphs.box.join(' '));
+    n.setAttribute('x', at.x); n.setAttribute('y', at.y); n.setAttribute('width', at.w); n.setAttribute('height', bh * s);
+    n.setAttribute('overflow', 'visible');
+    n.innerHTML = `<defs><mask id="${id}" maskUnits="userSpaceOnUse" x="${bx - 30}" y="${by - 30}" width="${bw + 60}" height="${bh + 60}">${glyphs.paths.map((p) => `<path d="${p.d}" fill="none" stroke="#fff" stroke-width="${15 / Math.max(.6, s)}" stroke-linecap="round" stroke-linejoin="round"/>`).join('')}</mask></defs><g mask="url(#${id})">${glyphs.paths.map((p) => `<path class="ink" d="${p.d}" stroke-width="${1.2 / Math.max(.6, s)}"/>`).join('')}</g>`;
+    art.appendChild(n);
+    const masks = [...n.querySelectorAll('mask path')], inks = [...n.querySelectorAll('.ink')];
+    const toWorld = (p) => ({ x: at.x + (p.x - bx) * s, y: at.y + (p.y - by) * s });
+    // world-space bounding box of each word in the phrase (for connectors)
+    const words = {};
+    glyphs.paths.forEach((p, i) => {
+      const b = inks[i].getBBox(), w = (words[p.w] ||= { x1: 1e9, y1: 1e9, x2: -1e9, y2: -1e9, first: i, last: i });
+      w.x1 = Math.min(w.x1, b.x); w.y1 = Math.min(w.y1, b.y); w.x2 = Math.max(w.x2, b.x + b.width); w.y2 = Math.max(w.y2, b.y + b.height); w.last = i;
+    });
+    for (const k in words) { const w = words[k], a = toWorld({ x: w.x1, y: w.y1 }), c = toWorld({ x: w.x2, y: w.y2 }); Object.assign(w, { x1: a.x, y1: a.y, x2: c.x, y2: c.y }); }
+    const baseline = toWorld({ x: 0, y: 200 }).y;
+    return { masks, s, toWorld, words: Object.values(words), baseline, bottom: at.y + bh * s };
+  }
+  const name = placeWord(GLYPHS.Clayton, NAME);
+  const phr = placeWord(GLYPHS.phrase, PHR);
+
+  /* ── 2. Build connectors, the circle and the long path from shared endpoints ── */
+  const f = (n) => n.toFixed(1);
+  function strokePath(d, w = 3.2) {
+    const p = document.createElementNS(NS, 'path');
+    p.setAttribute('class', 'stroke'); p.setAttribute('d', d); p.setAttribute('stroke-width', w);
+    art.appendChild(p);
+    return p;
+  }
+  const nameEnd = { x: name.words[0].x2 - 2, y: name.baseline - 3 };
+  const pw = phr.words;
+  const phrStart = { x: pw[0].x1 + 4, y: phr.baseline - 2 };
+  const pb = { x1: pw[0].x1, x2: pw[pw.length - 1].x2, y1: Math.min(...pw.map((w) => w.y1)), y2: Math.max(...pw.map((w) => w.y2)) };
+  // name → phrase: swing out right, sweep back left through the gap between the lines, loop down into the first letter
+  const E = nameEnd, Ps = phrStart, gapY = name.bottom + 20;
+  const c0 = strokePath(`M ${f(E.x)} ${f(E.y)} C ${f(E.x + 110)} ${f(E.y + 10)} ${f(E.x + 90)} ${f(gapY)} ${f(E.x - 40)} ${f(gapY)} `
+    + `C ${f(E.x - 200)} ${f(gapY)} ${f(Ps.x - 20)} ${f(gapY - 10)} ${f(Ps.x - 50)} ${f((gapY + Ps.y) / 2)} `
+    + `C ${f(Ps.x - 70)} ${f(Ps.y - 10)} ${f(Ps.x - 20)} ${f(Ps.y + 6)} ${f(Ps.x)} ${f(Ps.y)}`);
+  // between words: a shallow dip along the baseline
+  const gaps = [];
+  for (let i = 0; i < pw.length - 1; i++) {
+    const a = { x: pw[i].x2 - 2, y: phr.baseline - 2 }, b = { x: pw[i + 1].x1 + 3, y: phr.baseline - 2 };
+    gaps.push(strokePath(`M ${f(a.x)} ${f(a.y)} C ${f(a.x + 10)} ${f(a.y + 5)} ${f(b.x - 10)} ${f(b.y + 5)} ${f(b.x)} ${f(b.y)}`, 2));
+  }
+  // circle: a hand-drawn ellipse around the phrase, a little more than one turn
+  const C = { x: (pb.x1 + pb.x2) / 2, y: (pb.y1 + pb.y2) / 2 + 4, rx: (pb.x2 - pb.x1) / 2 + 60, ry: (pb.y2 - pb.y1) / 2 + 34 };
+  const tilt = -0.05;
+  const cpt = (t) => { const r = 1 + .025 * Math.sin(3 * t + 1); const x = C.rx * r * Math.cos(t), y = C.ry * r * Math.sin(t); return { x: C.x + x * Math.cos(tilt) - y * Math.sin(tilt), y: C.y + x * Math.sin(tilt) + y * Math.cos(tilt) }; };
+  const T0 = 0.18, T1 = T0 - Math.PI * 2 - 0.55;
+  const phrEnd = { x: pw[pw.length - 1].x2 - 2, y: phr.baseline - 2 };
+  const cs = cpt(T0);
+  const c1 = strokePath(`M ${f(phrEnd.x)} ${f(phrEnd.y)} C ${f(phrEnd.x + 30)} ${f(phrEnd.y + 6)} ${f(cs.x - 10)} ${f(cs.y + 30)} ${f(cs.x)} ${f(cs.y)}`, 2.6);
+  let cd = `M ${f(cs.x)} ${f(cs.y)}`;
+  for (let i = 1; i <= 140; i++) { const p = cpt(T0 + (T1 - T0) * i / 140); cd += ` L ${f(p.x)} ${f(p.y)}`; }
+  const circle = strokePath(cd, 3.2);
+  // flick out of the circle, then the long path past every project
+  const ce = cpt(T1);
+  const Y1 = C.y + C.ry + 210, dy = Y1 - 520;
+  const sh = (x, y) => `${f(x)} ${f(y + dy)}`;
+  const tailD = `M ${f(ce.x)} ${f(ce.y)} C ${f(ce.x + 40)} ${f(ce.y + 34)} ${f(ce.x + 120)} ${f(ce.y + 10)} ${f(ce.x + 128)} ${f(ce.y + 60)} C ${f(ce.x + 136)} ${f(ce.y + 140)} 900 ${f(Y1 - 90)} 820 ${f(Y1)} `
+    + `C ${sh(720, 640)} ${sh(300, 600)} ${sh(230, 760)} C ${sh(160, 920)} ${sh(300, 1010)} ${sh(520, 1040)} C ${sh(760, 1075)} ${sh(860, 1180)} ${sh(800, 1320)} `
+    + `C ${sh(740, 1460)} ${sh(380, 1440)} ${sh(300, 1580)} C ${sh(230, 1700)} ${sh(320, 1850)} ${sh(500, 1900)} C ${sh(620, 1930)} ${sh(700, 1960)} ${sh(720, 2040)} `
+    + `C ${sh(760, 2140)} ${sh(640, 2240)} ${sh(420, 2300)} C ${sh(220, 2360)} ${sh(200, 2480)} ${sh(330, 2560)}`;
+  const tail = strokePath(tailD, 3.2);
+  const WH = 2560 + dy + 260;
+  svg.setAttribute('viewBox', `0 0 1000 ${WH}`);
+
+  /* ── 3. Project stops ── */
+  const STOPS = [
+    { at: [230, 760], card: [310, 640], img: 'shots/sabine.webp', tag: '2026 · AI', title: 'SABINE', text: 'A local AI agent that runs fully offline on Apple Silicon.' },
+    { at: [800, 1320], card: [240, 1150], img: 'shots/simon.webp', tag: '2026 · AI', title: 'Ask Simon', text: "Zimbabwe's AI farming advisor, with live prices and farm maps." },
+    { at: [720, 2040], card: [140, 1960], img: 'shots/pathway.webp', tag: '2026 · Hackathon', title: 'Pathway', text: 'Swipe-to-match mentoring. Took 1st place.' },
+    { at: [330, 2560], card: [420, 2470], end: true, tag: 'Next', title: "Let's talk.", text: 'claytbzim@gmail.com' },
+  ].map((s) => ({ ...s, at: [s.at[0], s.at[1] + dy], card: [s.card[0], s.card[1] + dy] }));
+  const dots = STOPS.map((s) => { const c = document.createElementNS(NS, 'circle'); c.setAttribute('class', 'dot'); c.setAttribute('cx', s.at[0]); c.setAttribute('cy', s.at[1]); c.setAttribute('r', 0); art.appendChild(c); return c; });
+  const cards = STOPS.map((s) => {
+    const el = document.createElement('div');
+    el.className = 'card' + (s.end ? ' card--end' : '');
+    el.style.left = s.card[0] / 10 + 'cqw'; el.style.top = s.card[1] / 10 + 'cqw';
+    el.innerHTML = `${s.img ? `<img src="${s.img}" alt="${s.title} screenshot">` : ''}<small>${s.tag}</small><b>${s.title}</b><span>${s.text}</span>`;
+    world.appendChild(el);
+    return el;
+  });
+  th.addEventListener('pointermove', (e) => cards.forEach((c) => { const r = c.getBoundingClientRect(); c.style.setProperty('--mx', ((e.clientX - r.left) / r.width) * 100 + '%'); c.style.setProperty('--my', ((e.clientY - r.top) / r.height) * 100 + '%'); }));
+  const TL = tail.getTotalLength();
+  const stopF = STOPS.map((s) => { let best = 0, bd = 1e9; for (let i = 0; i <= 800; i++) { const p = tail.getPointAtLength(TL * i / 800); const d = (p.x - s.at[0]) ** 2 + (p.y - s.at[1]) ** 2; if (d < bd) { bd = d; best = i / 800; } } return best; });
+
+  /* ── 4. Segments: everything the pen draws, in order ── */
+  // A glyph outline goes out along one edge and back along the other; the outward half reveals the letter.
+  const warp = (u) => (u < .8 ? .5 * u / .8 : .5 + .5 * (u - .8) / .2);
+  function glyphSeg(word, i) {
+    const p = word.masks[i], len = p.getTotalLength();
+    p.style.strokeDasharray = `${len} ${len}`;
+    return {
+      travel: len * word.s * .5,
+      set(u) { p.style.strokeDashoffset = len * (1 - warp(u)); },
+      point(u) { return word.toWorld(p.getPointAtLength(len * Math.min(.5, warp(u)))); },
+    };
+  }
+  function strokeSeg(p) {
+    const len = p.getTotalLength();
+    p.style.strokeDasharray = `${len} ${len}`;
+    return { travel: len, len, set(u) { p.style.strokeDashoffset = len * (1 - u); }, point(u) { return p.getPointAtLength(len * u); } };
+  }
+  const nameSegs = name.masks.map((_, i) => glyphSeg(name, i));
+  const phraseSegs = [];
+  pw.forEach((w, wi) => { for (let i = w.first; i <= w.last; i++) phraseSegs.push(glyphSeg(phr, i)); if (gaps[wi]) phraseSegs.push(strokeSeg(gaps[wi])); });
+  const sc0 = strokeSeg(c0), sc1 = strokeSeg(c1), sCircle = strokeSeg(circle), sTail = strokeSeg(tail);
+  const ALL = [...nameSegs, sc0, ...phraseSegs, sc1, sCircle, sTail];
+
+  // Drive a group of segments with one eased progress value, split by how far the pen travels in each.
+  let pen = null, drawing = false, follow = false;
+  function group(segs, dur, ease) {
+    const total = segs.reduce((a, s) => a + s.travel, 0), o = { v: 0 };
+    return gsap.fromTo(o, { v: 0 }, { v: 1, duration: dur, ease, immediateRender: false, onUpdate() {
+      let acc = o.v * total;
+      for (const s of segs) { const u = Math.max(0, Math.min(1, acc / s.travel)); s.set(u); if (acc >= 0 && acc <= s.travel) pen = s.point(u); acc -= s.travel; }
+    } });
+  }
+
+  /* ── 5. Camera, particles, render ── */
+  let camY = 0, tcY = 0, W = 0, H = 0;
+  const k = () => stage.clientWidth / 1000;
+  const SN = 2200, S = { x: new Float32Array(SN), y: new Float32Array(SN), vx: new Float32Array(SN), vy: new Float32Array(SN), life: new Float32Array(SN), s: new Float32Array(SN), i: 0 };
+  function emit(x, y, n, spd, size) {
+    for (let j = 0; j < n; j++) {
+      const i = S.i = (S.i + 1) % SN, a = Math.random() * 6.283, v = Math.random() * spd;
+      S.x[i] = x; S.y[i] = y; S.vx[i] = Math.cos(a) * v; S.vy[i] = Math.sin(a) * v; S.life[i] = 1; S.s[i] = size * (.5 + Math.random());
+    }
+  }
+  const night = () => th.classList.contains('th--night');
+  function size() { W = stage.clientWidth; H = stage.clientHeight; cv.width = W * DPR; cv.height = H * DPR; }
+  let raf = 0;
+  function frame() {
+    const s = k();
+    if (pen && follow) tcY = Math.min(0, Math.max(H - WH * s, H * .55 - pen.y * s));
+    camY += (tcY - camY) * .07;
+    world.style.transform = `translate3d(0, ${camY}px, 0)`;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0); ctx.clearRect(0, 0, W, H);
+    ctx.setTransform(DPR * s, 0, 0, DPR * s, 0, DPR * camY);
+    ctx.globalCompositeOperation = night() ? 'lighter' : 'source-over';
+    if (pen && drawing) {
+      emit(pen.x, pen.y, 2, 1.3, 2.2);
+      const g = ctx.createRadialGradient(pen.x, pen.y, 0, pen.x, pen.y, 24);
+      g.addColorStop(0, 'rgba(255,255,255,.95)'); g.addColorStop(.35, night() ? 'rgba(170,185,255,.45)' : 'rgba(255,255,255,.4)'); g.addColorStop(1, 'rgba(255,255,255,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(pen.x, pen.y, 24, 0, 6.283); ctx.fill();
+    }
+    for (let i = 0; i < SN; i++) {
+      if (S.life[i] <= 0) continue;
+      S.x[i] += S.vx[i]; S.y[i] += S.vy[i]; S.vx[i] *= .94; S.vy[i] = S.vy[i] * .94 + .025; S.life[i] -= .013;
+      ctx.fillStyle = `rgba(255,255,255,${Math.max(0, S.life[i])})`;
+      ctx.fillRect(S.x[i] - S.s[i] / 2, S.y[i] - S.s[i] / 2, S.s[i], S.s[i]);
+    }
+    ctx.globalCompositeOperation = 'source-over';
+    raf = requestAnimationFrame(frame);
+  }
+
+  /* ── 6. Choreography ── */
+  let shown = [];
+  function reset() {
+    ALL.forEach((s) => s.set(0));
+    pen = null; drawing = true; follow = false; shown = []; S.life.fill(0);
+    tcY = 0;
+    gsap.set(cards, { opacity: 0 });
+    gsap.set(dots, { attr: { r: 0 } });
+  }
+  function checkStops(u) {
+    stopF.forEach((sf, i) => {
+      if (u >= sf - .002 && !shown[i]) {
+        shown[i] = true;
+        gsap.to(dots[i], { attr: { r: 9 }, duration: .5, ease: 'back.out(3)' });
+        gsap.fromTo(cards[i], { opacity: 0, y: 24, scale: .94 }, { opacity: 1, y: 0, scale: 1, duration: .8, ease: 'back.out(1.4)' });
+        emit(STOPS[i].at[0], STOPS[i].at[1], 70, 5, 2.4);
+      }
+    });
+  }
+  const tl = gsap.timeline();
+  tl.add(reset)
+    .add(group(nameSegs, 2.5, 'power1.inOut'))
+    .add(group([sc0], .75, 'sine.inOut'))
+    .add(group(phraseSegs, 3, 'power1.inOut'))
+    .add(group([sc1, sCircle], 1.5, 'power2.inOut'))
+    .add(() => { emit(ce.x, ce.y, 50, 4, 2.2); follow = true; });
+  // the long path, pausing briefly at each stop
+  const to = { v: 0 };
+  let last = 0;
+  [...stopF, 1].forEach((sf, i) => {
+    if (sf - last < .01) return;
+    tl.to(to, { v: sf, duration: Math.max(.9, (sf - last) * 9), ease: i === 0 ? 'power2.in' : 'sine.inOut', onUpdate() { sTail.set(to.v); pen = sTail.point(to.v); checkStops(to.v); } })
+      .to({}, { duration: .6 });
+    last = sf;
+  });
+  tl.add(() => { drawing = false; }).to({}, { duration: 2.4 }).add(() => { to.v = 0; });
+  tl.repeat(-1).repeatDelay(.4);
+
+  addEventListener('resize', size); size();
+  if (reduce) { tl.progress(.985).pause(); drawing = false; frame(); cancelAnimationFrame(raf); }
+  else {
+    tl.pause();
+    new IntersectionObserver(([e]) => { if (e.isIntersecting) { tl.play(); if (!raf) raf = requestAnimationFrame(frame); } else { tl.pause(); cancelAnimationFrame(raf); raf = 0; } }, { threshold: .2 }).observe(stage);
+  }
+
+  /* ── controls ── */
+  const bL = document.getElementById('light'), bN = document.getElementById('night');
+  function setTheme(n) { th.classList.toggle('th--night', n); bL.setAttribute('aria-pressed', String(!n)); bN.setAttribute('aria-pressed', String(n)); }
+  bL.addEventListener('click', () => setTheme(false));
+  bN.addEventListener('click', () => setTheme(true));
+  document.getElementById('replay').addEventListener('click', () => { tl.restart(); if (reduce) tl.progress(.985).pause(); });
+})();
+</script>
