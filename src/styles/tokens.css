@@ -1,80 +1,81 @@
 /* ─────────────────────────────────────────────────────────────
    Design tokens — the single source of truth.
    Modules use these variables only; never raw colours in CSS.
-   Two themes: night (oxblood, default) and light (blush paper, crimson ink).
+   Two themes: night (graphite, default) and light (pale stone, graphite ink).
+   Red is the one accent in both.
    ───────────────────────────────────────────────────────────── */
 :root[data-theme='light'] {
   /* surface */
-  --bg: #fbf1ee;
-  --blob-1: #ff8f8f;
-  --blob-2: #f2b2a0;
-  --blob-3: #e0434f;
+  --bg: #f3f3f1;
+  --blob-1: #cfd3da;
+  --blob-2: #e4e2dc;
+  --blob-3: #e8a3a8;
   --blob-opacity: 0.55;
 
   /* the line + handwriting */
-  --ink: #b0101f;
-  --ink-glow: drop-shadow(0 2px 6px rgba(120, 10, 20, 0.25));
-  --ink-particle: 176, 16, 31; /* rgb triplet for canvas */
-  --pen-glow: 220, 40, 50;
+  --ink: #111317;
+  --ink-glow: drop-shadow(0 2px 6px rgba(200, 16, 46, 0.25));
+  --ink-particle: 17, 19, 23; /* rgb triplet for canvas */
+  --pen-glow: 200, 16, 46;
 
   /* text on the open background */
-  --text: #1f0b0d;
-  --text-dim: #5c2b2f; /* ~9:1 on --bg */
-  --text-faint: #8a5a5c; /* decoration / large text only */
+  --text: #121418;
+  --text-dim: #3f444c; /* ~9:1 on --bg */
+  --text-faint: #757b84; /* decoration / large text only */
 
   /* glass */
-  --glass-text: #1f0b0d;
-  --glass-dim: #5c2b2f;
+  --glass-text: #121418;
+  --glass-dim: #3f444c;
   --glass-bg: linear-gradient(160deg, rgba(255, 255, 255, 0.74), rgba(255, 255, 255, 0.42));
   --glass-border: rgba(255, 255, 255, 0.75);
   --glass-shine: rgba(255, 255, 255, 0.8);
   --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.3),
-    0 24px 48px -24px rgba(110, 20, 30, 0.35);
+    0 24px 48px -24px rgba(200, 16, 46, 0.35);
   --glass-blur: blur(20px) saturate(170%);
   --chip-bg: rgba(255, 255, 255, 0.55);
-  --chip-border: rgba(31, 11, 13, 0.14);
+  --chip-border: rgba(18, 20, 24, 0.14);
 
   --accent: #c8102e;
   --accent-2: #e2572b;
   --accent-ink: #c8102e;
   --focus: #8a0018;
-  --rule: rgba(31, 11, 13, 0.12);
+  --rule: rgba(18, 20, 24, 0.12);
 
   color-scheme: light;
 }
 
 :root,
 :root[data-theme='night'] {
-  --bg: #14070a;
-  --blob-1: #8f0f1f;
-  --blob-2: #4a0a1c;
-  --blob-3: #c2361f;
+  --bg: #0b0c0e;
+  --blob-1: #3a3f48;
+  --blob-2: #1a1c21;
+  --blob-3: #5a1c20;
   --blob-opacity: 0.5;
 
-  --ink: #fff1ec;
-  --ink-glow: drop-shadow(0 0 3px rgba(255, 236, 230, 0.7)) drop-shadow(0 0 14px rgba(255, 60, 60, 0.45));
-  --ink-particle: 255, 225, 215;
-  --pen-glow: 255, 90, 80;
+  --ink: #ffffff;
+  --ink-glow: drop-shadow(0 0 3px rgba(255, 60, 60, 0.55)) drop-shadow(0 0 14px rgba(255, 60, 60, 0.5));
+  --ink-particle: 255, 255, 255;
+  --pen-glow: 255, 60, 60;
 
-  --text: #fbeeea;
-  --text-dim: #e2c2bc;
-  --text-faint: #a8827c;
+  --text: #f2f3f5;
+  --text-dim: #c4c8cf;
+  --text-faint: #8a9099;
 
-  --glass-text: #fbeeea;
-  --glass-dim: #e2c2bc;
-  --glass-bg: linear-gradient(160deg, rgba(255, 240, 236, 0.1), rgba(255, 240, 236, 0.03));
-  --glass-border: rgba(255, 200, 190, 0.16);
-  --glass-shine: rgba(255, 120, 110, 0.32);
-  --glass-shadow: inset 0 1px 0 rgba(255, 220, 210, 0.18), 0 24px 56px -24px rgba(0, 0, 0, 0.85);
+  --glass-text: #f2f3f5;
+  --glass-dim: #c4c8cf;
+  --glass-bg: linear-gradient(160deg, rgba(240, 244, 250, 0.1), rgba(240, 244, 250, 0.03));
+  --glass-border: rgba(210, 215, 225, 0.16);
+  --glass-shine: rgba(255, 110, 110, 0.26);
+  --glass-shadow: inset 0 1px 0 rgba(210, 215, 225, 0.18), 0 24px 56px -24px rgba(0, 0, 0, 0.85);
   --glass-blur: blur(22px) saturate(150%);
-  --chip-bg: rgba(255, 240, 236, 0.07);
-  --chip-border: rgba(255, 200, 190, 0.18);
+  --chip-bg: rgba(240, 244, 250, 0.07);
+  --chip-border: rgba(210, 215, 225, 0.18);
 
   --accent: #ff4d4d;
   --accent-2: #ff8a5c;
   --accent-ink: #e0242f;
   --focus: #ffb3a8;
-  --rule: rgba(255, 200, 190, 0.14);
+  --rule: rgba(210, 215, 225, 0.14);
 
   color-scheme: dark;
 }

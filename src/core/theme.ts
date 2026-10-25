@@ -17,7 +17,7 @@ export function currentTheme(): Theme {
 
 export function setTheme(theme: Theme, persist = true): void {
   document.documentElement.dataset.theme = theme
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#14070a' : '#fbf1ee')
+  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'night' ? '#0b0c0e' : '#f3f3f1')
   if (persist) {
     try {
       localStorage.setItem(KEY, theme)
