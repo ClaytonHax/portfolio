@@ -1,14 +1,8 @@
-import glyphsJson from '../data/glyphs.json'
 import { profile } from '../data/profile'
 import { on } from '../core/bus'
 import { currentTheme, setTheme } from '../core/theme'
 import { scrollTo, ScrollTrigger, lockScroll, reducedMotion } from '../core/motion'
 import { icons } from './icons'
-
-interface GlyphSet {
-  box: number[]
-  paths: { d: string }[]
-}
 
 const LINKS = [
   { label: 'Work', target: '#work', sections: ['work', 'more'] },
@@ -17,16 +11,9 @@ const LINKS = [
   { label: 'Contact', target: '#contact', sections: ['contact'] },
 ]
 
-/** Cursive "Clayton" as a static filled SVG (currentColor). Falls back to plain text. */
+/** Typeset wordmark: the cursive belongs to the pen in the hero; the nav stays in the site's own type. */
 function wordmark(): string {
-  const g = glyphsJson as unknown as Record<string, GlyphSet | undefined>
-  const set = g.Clayton
-  if (!set) return '<span class="nav__name-txt">Clayton</span>'
-  const [x, y, w, h] = set.box
-  const pad = 4
-  return `<svg class="nav__name" viewBox="${x - pad} ${y - pad} ${w + pad * 2} ${h + pad * 2}" aria-hidden="true" focusable="false">${set.paths
-    .map((p) => `<path d="${p.d}" fill="currentColor"/>`)
-    .join('')}</svg>`
+  return '<span class="nav__name">Clayton<span class="nav__dot">.</span></span>'
 }
 
 export function initNav(): void {

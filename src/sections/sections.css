@@ -249,28 +249,22 @@ html.js .nav__pill:not(.is-in) {
   height: 44px;
   padding: 0 4px;
   border-radius: 8px;
-  color: var(--accent-ink);
+  color: var(--text);
   text-decoration: none;
 }
-:root[data-theme='night'] .nav__brand {
-  color: var(--ink);
-}
 .nav__name {
-  height: 32px;
-  width: auto;
-  overflow: visible;
-  /* a stroke on top of the fill thickens Sacramento's hairlines so the logo reads at nav size */
-  stroke: currentColor;
-  stroke-width: 7;
-  stroke-linejoin: round;
+  font-family: var(--font-sans);
+  font-size: 1.3rem;
+  font-weight: 650;
+  letter-spacing: -0.045em;
+  line-height: 1;
 }
-.nav__name-txt {
-  font-weight: 600;
-  letter-spacing: -0.03em;
+.nav__dot {
+  color: var(--accent);
 }
 @media (min-width: 1024px) {
   .nav__name {
-    height: 40px;
+    font-size: 1.5rem;
   }
 }
 .nav__brand-line {
