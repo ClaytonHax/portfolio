@@ -3,7 +3,7 @@ import { NOISE } from './noise.glsl'
 export const coreVert = /* glsl */ `
 ${NOISE}
 attribute vec3 aS1; attribute vec3 aS2; attribute vec3 aS3; attribute vec4 aRand;
-uniform float uTime, uFrom, uTo, uMix, uPR, uSize, uOpacity, uIntensity, uPulse, uVel, uGlitch, uHover;
+uniform float uCurl, uTime, uFrom, uTo, uMix, uPR, uSize, uOpacity, uIntensity, uPulse, uVel, uGlitch, uHover;
 uniform vec3 uPointer; uniform float uPointerR; uniform float uPointerK;
 uniform vec3 uAccent;
 varying vec3 vColor; varying float vAlpha;
@@ -22,7 +22,7 @@ void main(){
   // curl-noise drift
   vec3 c = curl(p * 1.15 + vec3(0., 0., uTime * .12));
   float amp = .04 + travel * .5 + uGlitch * .35 + uVel * .45 + uPulse * .3;
-  p += c * amp * .32;
+  p += c * amp * .32 * uCurl;
   p *= 1. + .018 * sin(uTime * 1.2 + aRand.w * 6.28) + uPulse * .07;
 
   vec4 wp = modelMatrix * vec4(p, 1.);

@@ -17,7 +17,7 @@ export async function createCore(count: number) {
   geo.boundingSphere = new THREE.Sphere(new THREE.Vector3(), 10)
 
   const uniforms = {
-    uTime: { value: 0 }, uFrom: { value: 0 }, uTo: { value: 0 }, uMix: { value: 1 },
+    uCurl: { value: location.search.includes("nocurl") ? 0 : 1 }, uTime: { value: 0 }, uFrom: { value: 0 }, uTo: { value: 0 }, uMix: { value: 1 },
     uPR: { value: 1 }, uSize: { value: 1.6 }, uOpacity: { value: 1 }, uIntensity: { value: 1 },
     uPulse: { value: 0 }, uVel: { value: 0 }, uGlitch: { value: 0 }, uHover: { value: 0 },
     uPointer: { value: new THREE.Vector3(99, 99, 0) }, uPointerR: { value: 1.4 }, uPointerK: { value: 1 },
