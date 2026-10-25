@@ -615,6 +615,13 @@ html.js:not(.no-pen) .intro-meta.is-in .rvc {
   gap: clamp(36px, 6vw, 72px);
   align-items: center;
 }
+.about {
+  position: relative;
+  --about-gap: clamp(72px, 7vw, 128px);
+}
+.about__out {
+  display: none;
+}
 .about .sec-head {
   margin-bottom: clamp(24px, 3vw, 44px);
 }
@@ -671,7 +678,22 @@ html.js:not(.no-pen) .intro-meta.is-in .rvc {
 @media (min-width: 1024px) {
   .about {
     grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
-    gap: clamp(72px, 7vw, 128px);
+    gap: var(--about-gap);
+  }
+  /* pen waypoint at the column gutter, level with the copy's last line: the line leaves About through the gutter, never across the text */
+  .about__out {
+    display: block;
+    position: absolute;
+    bottom: 0;
+    left: calc((100% - var(--about-gap)) * 7 / 12 + var(--about-gap) / 2);
+    width: 2px;
+    height: 2px;
+    pointer-events: none;
+  }
+  /* …then cuts across the empty band under the copy to the left margin, ahead of the chapter divider */
+  .about__out--edge {
+    bottom: -90px;
+    left: calc(var(--gutter, 24px) / -2);
   }
 }
 

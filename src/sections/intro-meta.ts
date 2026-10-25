@@ -13,6 +13,11 @@ export function initIntroMeta(): void {
     <a class="intro-meta__cue rvc" style="--i:3" href="#about" aria-label="Scroll to About">
       <span>Scroll</span><i aria-hidden="true"></i>
     </a>`
+  // desktop: the line drops past the left of the tagline instead of cutting through it
+  const tag = el.querySelector<HTMLElement>('.intro-meta__tag')!
+  tag.dataset.penStop = 'intro-tag'
+  tag.dataset.penSide = 'left'
+  tag.dataset.penGap = '56'
   revealAfterIntro(el)
   el.querySelector('.intro-meta__cue')!.addEventListener('click', (e) => {
     e.preventDefault()

@@ -89,7 +89,7 @@ export function buildJourney(F: Pt, tan: Pt, anchors: Anchor[], W: number, H: nu
       const bx = clamp(x + dir * bow, M, W - M)
       if (Math.abs(bx - x) > 4) pushWay({ p: { x: bx, y: (cy + prevY) / 2 }, t: { x: 0, y: 1 } })
     }
-    pushWay({ id: a.id, p: { x, y: cy }, t: a.side === 'through' ? { x: 0, y: 1 } : { x: 0, y: 1 }, free: a.side === 'through' })
+    pushWay({ id: a.id, p: { x, y: cy }, t: a.side === 'through' ? { x: 0, y: 1 } : { x: 0, y: 1 }, free: a.side === 'through' && a.rect.w > 4 }) // tiny marker stops keep a vertical tangent
     prevSide = a.side
     prevY = cy
   }

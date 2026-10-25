@@ -27,6 +27,8 @@ export function initAbout(): void {
             )
             .join('')}
         </dl>
+        <span class="about__out" data-pen-stop="about-out" data-pen-side="through" aria-hidden="true"></span>
+        <span class="about__out about__out--edge" data-pen-stop="about-edge" data-pen-side="through" aria-hidden="true"></span>
       </div>
     </div>`
 

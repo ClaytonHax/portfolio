@@ -51,8 +51,14 @@
   left: clamp(16px, 2.2vw, 36px);
   bottom: clamp(16px, 2.6vh, 32px);
   z-index: 30;
-  height: 1.6em;
-  min-width: 14em;
+  /* a small glass chip, so it reads as floating UI rather than colliding with copy it passes over */
+  height: calc(1.6em + 1.1em);
+  min-width: 21.5em;
+  border-radius: 999px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  -webkit-backdrop-filter: var(--glass-blur);
+  backdrop-filter: var(--glass-blur);
   overflow: hidden;
   pointer-events: none;
   font-family: var(--font-mono, ui-monospace, monospace);
@@ -61,10 +67,12 @@
   text-transform: uppercase;
   color: var(--text-dim);
 }
+.ticker { transition: opacity 0.35s ease, transform 0.35s ease; }
+.ticker--off { opacity: 0; transform: translateY(14px); }
 .ticker__item {
   position: absolute;
-  left: 0;
-  top: 0;
+  left: 1.1em;
+  top: 0.55em;
   display: flex;
   gap: 0.9em;
   white-space: nowrap;

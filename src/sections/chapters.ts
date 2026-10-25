@@ -35,6 +35,11 @@ function buildDividers(): HTMLElement[] {
     div.dataset.chapter = c.id
     div.innerHTML = `<div class="chapter__rule"></div>
       <div class="chapter__row"><span class="chapter__num">${c.n}</span><span class="chapter__label">${c.label}</span></div>`
+    // the pen passes the long closing label on its right, then swings in to the email
+    if (c.id === 'contact') {
+      div.dataset.penStop = 'contact-chapter'
+      div.dataset.penSide = 'right'
+    }
     // For #process keep the pen stop tick between the divider and the pinned section.
     // (a pinned section lives inside a .pin-spacer: place the divider before the spacer, not inside it)
     const ref = sec.parentElement?.classList.contains('pin-spacer') ? sec.parentElement : sec
@@ -89,6 +94,9 @@ function buildTicker(dividers: HTMLElement[]): void {
     if (olds.length) gsap.fromTo(item, { xPercent: 60 * dir, opacity: 0 }, { xPercent: 0, opacity: 1, duration: 0.6, ease: 'power3.out', delay: 0.12 })
   }
   set(0)
+  // slide out while the footer is on screen so it never sits on the footer text
+  const foot = document.getElementById('footer')
+  if (foot) new IntersectionObserver((e) => el.classList.toggle('ticker--off', e[e.length - 1].isIntersecting)).observe(foot)
   const idx = CHAPTERS.map((c) => c.id)
   dividers.forEach((d) => {
     const i = idx.indexOf(d.dataset.chapter!)
@@ -117,6 +125,9 @@ function buildMarquee(): void {
   mq.innerHTML = rows
     .map((r) => `<div class="mq__row"><div class="mq__track">${Array.from({ length: copies }, () => r.map(item).join('')).join('')}</div></div>`)
     .join('')
+  // the pen slips past the marquee along its (masked, empty) right edge
+  mq.dataset.penStop = 'mq'
+  mq.dataset.penSide = 'right'
   sec.prepend(mq)
   if (reducedMotion) {
     mq.classList.add('mq--static')
