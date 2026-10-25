@@ -1,0 +1,239 @@
+/* Design tokens — the single source of truth. Modules must use these, never raw hex. */
+:root {
+  --bg: #0a0a0b;
+  --bg-elev: #111113;
+  --bg-elev-2: #17171a;
+  --line: #24242a;
+  --line-strong: #34343c;
+  --text: #ece9e4;
+  --text-dim: #a19fa6;
+  --text-faint: #6c6a72;
+
+  --red: #ff3b3b;
+  --red-hot: #ff5a4a;
+  --red-deep: #c4161c;
+  --red-glow: rgba(255, 59, 59, 0.35);
+  --red-wash: rgba(255, 59, 59, 0.08);
+
+  --ok: #4ade80;
+  --warn: #fbbf24;
+
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-display: 'Space Grotesk', system-ui, sans-serif;
+
+  --radius: 10px;
+  --radius-lg: 16px;
+  --gutter: clamp(16px, 4vw, 48px);
+  --max: 1280px;
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+
+  /* z-index scale */
+  --z-canvas: 0;
+  --z-content: 10;
+  --z-overlay-fx: 20;
+  --z-nav: 30;
+  --z-modal: 40;
+  --z-cursor: 50;
+  --z-boot: 60;
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  background: var(--bg);
+  -webkit-text-size-adjust: 100%;
+}
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+body.is-booting {
+  overflow: hidden;
+}
+
+::selection {
+  background: var(--red);
+  color: var(--bg);
+}
+
+a {
+  color: inherit;
+}
+img {
+  max-width: 100%;
+  display: block;
+}
+button {
+  font: inherit;
+  color: inherit;
+}
+
+:focus-visible {
+  outline: 2px solid var(--red);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: calc(var(--z-boot) + 1);
+  padding: 8px 14px;
+  background: var(--red);
+  color: var(--bg);
+  font-family: var(--font-mono);
+  transform: translateY(-200%);
+}
+.skip-link:focus {
+  transform: none;
+}
+
+#webgl {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: var(--z-canvas);
+  display: block;
+  pointer-events: none;
+}
+
+main,
+#footer {
+  position: relative;
+  z-index: var(--z-content);
+}
+
+main > section {
+  position: relative;
+  padding-inline: var(--gutter);
+}
+
+.container {
+  max-width: var(--max);
+  margin-inline: auto;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Shared section header: "~/work $ ls -la" prompt line + big title */
+.section-head {
+  margin-bottom: clamp(32px, 6vw, 72px);
+}
+.section-head .prompt {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+.section-head .prompt .path {
+  color: var(--red);
+}
+.section-head h2 {
+  margin: 8px 0 0;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: clamp(36px, 7vw, 96px);
+  line-height: 0.95;
+  letter-spacing: -0.035em;
+}
+.section-head h2 .accent {
+  color: var(--red);
+}
+
+/* Shared chip */
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-dim);
+  background: rgba(17, 17, 19, 0.6);
+}
+
+/* Shared terminal window frame */
+.term {
+  background: rgba(14, 14, 16, 0.82);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  box-shadow: 0 30px 80px -30px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(255, 59, 59, 0.03);
+}
+.term__bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  color: var(--text-faint);
+  font-size: 12px;
+}
+.term__dots {
+  display: flex;
+  gap: 6px;
+}
+.term__dots i {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--line-strong);
+}
+.term__dots i:first-child {
+  background: var(--red);
+}
+.term__body {
+  padding: 18px 20px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}

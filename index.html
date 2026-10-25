@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Clayton Banks — Developer</title>
+    <meta name="description" content="Clayton Banks — full-stack developer and AI builder from Harare, Zimbabwe. Local LLM agents, AI products and production web apps." />
+    <meta name="theme-color" content="#0a0a0b" />
+    <meta property="og:title" content="Clayton Banks — Developer" />
+    <meta property="og:description" content="Local LLM agents, AI products and production web apps." />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  </head>
+  <body>
+    <a class="skip-link" href="#main">Skip to content</a>
+
+    <!-- Fixed, full-viewport WebGL background (owned by src/webgl) -->
+    <canvas id="webgl" aria-hidden="true"></canvas>
+    <!-- Post overlays: scanlines / vignette / noise (CSS, owned by src/ui) -->
+    <div class="fx-overlay" aria-hidden="true"></div>
+
+    <!-- Boot sequence overlay (owned by src/ui/boot.ts) -->
+    <div id="boot" role="status" aria-live="polite"></div>
+
+    <!-- Custom cursor (owned by src/ui/cursor.ts) -->
+    <div id="cursor" aria-hidden="true"></div>
+
+    <!-- Nav (owned by src/ui/nav.ts) -->
+    <header id="nav"></header>
+
+    <main id="main">
+      <!-- Each section is an empty mount point. The module that owns it renders its content. -->
+      <section id="hero" data-section="hero" aria-label="Intro"></section>
+      <section id="about" data-section="about" aria-labelledby="about-title"></section>
+      <section id="work" data-section="work" aria-labelledby="work-title"></section>
+      <section id="archive" data-section="archive" aria-labelledby="archive-title"></section>
+      <section id="stack" data-section="stack" aria-labelledby="stack-title"></section>
+      <section id="contact" data-section="contact" aria-labelledby="contact-title"></section>
+    </main>
+
+    <footer id="footer"></footer>
+
+    <!-- Project detail dialog (owned by src/projects) -->
+    <div id="project-modal"></div>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
