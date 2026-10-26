@@ -99,7 +99,7 @@
 .phone__draw rect {
   fill: none;
   stroke: var(--ink, var(--accent));
-  stroke-width: 2;
+  stroke-width: 3;
   stroke-linecap: round;
   filter: var(--ink-glow, none);
 }

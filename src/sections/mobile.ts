@@ -77,7 +77,7 @@ export function initMobile(): void {
       gsap.set(rect, { strokeDasharray: 1, strokeDashoffset: 1, opacity: 1 })
       ScrollTrigger.create({
         trigger: it,
-        start: 'top 85%',
+        start: 'top 68%',
         once: true,
         onEnter: () => {
           const w = phone.offsetWidth
@@ -87,9 +87,9 @@ export function initMobile(): void {
           rect.setAttribute('height', String(h))
           rect.setAttribute('rx', String(w * 0.17))
           gsap
-            .timeline({ delay: i * 0.12, onComplete: () => svg.remove() })
-            .to(rect, { strokeDashoffset: 0, duration: 0.85, ease: 'power2.inOut' })
-            .to(rect, { opacity: 0, duration: 0.5, ease: 'power1.out' }, '-=0.1')
+            .timeline({ delay: 0.1 + i * 0.18, onComplete: () => svg.remove() })
+            .to(rect, { strokeDashoffset: 0, duration: 1.15, ease: 'power2.inOut' })
+            .to(rect, { opacity: 0, duration: 0.9, ease: 'power1.out' }, '+=0.25')
         },
       })
     })
