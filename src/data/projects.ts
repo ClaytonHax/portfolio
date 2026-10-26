@@ -168,7 +168,7 @@ export const projects: Project[] = [
   },
   {
     id: 'seed',
-    title: 'Seed',
+    title: 'SCP Seed Finder',
     tagline: 'Preview any SCP: Containment Breach map seed before you load in.',
     description:
       "Type a seed and get the exact facility layout the game will generate: zones, corridor shapes, checkpoints and every hand-placed room, reproduced from the game's own generator.",
@@ -181,6 +181,8 @@ export const projects: Project[] = [
     category: 'Tool',
     tier: 'more',
     year: 2026,
+    url: 'https://scp-seed-finder.vercel.app',
+    repo: 'https://github.com/ClaytonHax/scp-seed-finder',
     image: '/shots/seed.webp',
     accent: '#ff3b3b',
   },
@@ -217,7 +219,7 @@ export const projects: Project[] = [
   },
   {
     id: 'circuit-vault',
-    title: 'CIRCUIT//VAULT',
+    title: 'Arduino Complete Guide',
     tagline: 'An electronics and Arduino component reference hub.',
     description:
       'A searchable reference of sensors and components with example code and wiring notes for Arduino projects.',
@@ -226,6 +228,8 @@ export const projects: Project[] = [
     category: 'Tool',
     tier: 'more',
     year: 2026,
+    url: 'https://arduino-complete-guide.vercel.app',
+    repo: 'https://github.com/ClaytonHax/arduino-complete-guide',
     image: '/shots/circuit-vault.webp',
     accent: '#ff3b3b',
   },
