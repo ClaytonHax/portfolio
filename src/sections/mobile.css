@@ -1,18 +1,19 @@
 /* ── #mobile — phone-first apps ─────────────────────────────── */
 .mob {
   position: relative;
-  --w: 292px;
+  /* side phones size off the viewport height so the whole row + captions fits while pinned */
+  --w0: clamp(150px, calc((100svh - 420px) / 2.3), 292px);
 }
 .mob__glow {
   position: absolute;
   inset: 4% 8% auto;
   height: 70%;
   border-radius: 50%;
-  background: radial-gradient(closest-side, rgba(var(--pen-glow), 0.28), transparent 72%);
+  background: radial-gradient(closest-side, rgba(var(--pen-glow), 0.2), transparent 72%);
   pointer-events: none;
 }
+/* NB: nothing between .mob and .phone is positioned, so the pen can read shape offsets within the stage */
 .mob__track {
-  position: relative;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-items: start;
@@ -27,15 +28,17 @@
   align-items: center;
   text-align: center;
   --s: 1;
+  --w: var(--w0);
+  margin-top: 28px; /* the hero sits 28px higher than its neighbours */
 }
 .mob__item--hero {
-  --w: 332px;
-  margin-top: -28px;
+  --w: calc(var(--w0) * 1.1);
+  margin-top: 0;
 }
 
-/* the device: bezel, side keys, glass glare. The screen is the real screenshot (390 x 844). */
+/* the device: bezel, side keys, glass glare. The screen is the real screenshot (390 x 844).
+   Layers (back to front): halo, shadow, ghost, device body (conic-masked while the pen draws), screen, shine. */
 .phone {
-  --py: 0px;
   position: relative;
   display: block;
   width: var(--w);
@@ -43,39 +46,91 @@
   padding: calc(var(--w) * 0.034);
   border: 0;
   border-radius: calc(var(--w) * 0.17);
+  background: none;
+  cursor: pointer;
+  transform: scale(var(--s));
+  transform-origin: center top;
+  transition: transform 0.45s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+  --a: 380deg;
+  --ra: 0;
+  --sp: 1;
+  --bp: 1;
+}
+.phone__halo,
+.phone__shadow,
+.phone__ghost,
+.phone__dev,
+.phone__shine {
+  position: absolute;
+  pointer-events: none;
+}
+.phone__halo {
+  inset: -14% -34%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--pen-glow), 0.36), rgba(var(--pen-glow), 0.1) 55%, transparent 76%);
+  opacity: 0;
+}
+.phone__shadow {
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    0 40px 70px -28px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+  opacity: var(--bp);
+  transition: box-shadow 0.6s var(--ease-out);
+}
+.phone__ghost {
+  inset: 0;
+  border-radius: inherit;
+  background: color-mix(in srgb, var(--text) 3.5%, transparent);
+  opacity: 0;
+}
+.phone__ghost::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px dashed color-mix(in srgb, var(--text) 24%, transparent);
+}
+/* body is a little oversized so the side keys survive the mask */
+.phone__dev {
+  inset: -6px;
+  box-sizing: border-box;
+  /* padding = the bezel's thickness, so the content box is exactly the screen and the border box minus it is the bezel ring */
+  padding: calc(var(--w) * 0.034 + 6px);
+  border-radius: calc(var(--w) * 0.17 + 6px);
+}
+.phone__bezel {
+  position: absolute;
+  inset: 6px;
+  border-radius: calc(var(--w) * 0.17);
   background: linear-gradient(150deg, #2b2e34, #0c0d10 55%, #23262c);
   box-shadow:
     inset 0 0 0 1.5px rgba(255, 255, 255, 0.14),
-    inset 0 0 0 calc(var(--w) * 0.012) #050506,
-    0 40px 70px -28px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(0, 0, 0, 0.5);
-  cursor: pointer;
-  translate: 0 var(--py);
-  transform: scale(var(--s));
-  transform-origin: center top;
-  transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
-  -webkit-tap-highlight-color: transparent;
+    inset 0 0 0 calc(var(--w) * 0.012) #050506;
 }
-.phone::before,
-.phone::after {
+.phone__dev::before,
+.phone__dev::after {
   content: '';
   position: absolute;
   width: 3px;
   border-radius: 2px;
   background: #1a1c21;
 }
-.phone::before {
-  left: -3px;
-  top: 18%;
+.phone__dev::before {
+  left: 3px;
+  top: calc(18% + 6px);
   height: 9%;
   box-shadow: 0 calc(var(--w) * 0.2) 0 #1a1c21;
 }
-.phone::after {
-  right: -3px;
-  top: 25%;
+.phone__dev::after {
+  right: 3px;
+  top: calc(25% + 6px);
   height: 14%;
 }
 .phone__screen {
+  position: relative;
   display: block;
   overflow: hidden;
   aspect-ratio: 390 / 844;
@@ -88,50 +143,123 @@
   height: 100%;
   object-fit: cover;
 }
-/* while the pen is still sketching, the devices are empty outlines; they fill in once all three are drawn */
-.mob.is-sketching .phone {
-  background: transparent;
-  box-shadow: none;
-  pointer-events: none;
-}
-.mob.is-sketching .phone::before,
-.mob.is-sketching .phone::after {
-  opacity: 0;
-}
-.mob.is-sketching .phone__screen,
-.mob.is-sketching .phone__shine,
-.mob.is-sketching .mob__cap {
-  opacity: 0;
-}
-.phone__screen,
 .phone__shine {
-  transition: opacity 0.8s var(--ease-out) calc(var(--i, 0) * 120ms);
-}
-.mob .phone {
-  transition: transform 0.45s var(--ease-out), box-shadow 0.8s var(--ease-out);
-}
-.mob .phone::before,
-.mob .phone::after {
-  transition: opacity 0.8s var(--ease-out);
-}
-.mob__item .mob__cap {
-  transition: opacity 0.8s var(--ease-out) calc(0.25s + var(--i, 0) * 120ms);
-}
-.phone__shine {
-  position: absolute;
   inset: calc(var(--w) * 0.034);
   border-radius: calc(var(--w) * 0.135);
+  overflow: hidden;
   background: linear-gradient(115deg, rgba(255, 255, 255, 0.16), transparent 32%, transparent 70%, rgba(255, 255, 255, 0.05));
-  pointer-events: none;
 }
+.phone__shine i {
+  position: absolute;
+  inset: -10% auto -10% 0;
+  width: 46%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.5), transparent);
+  transform: translateX(-130%) skewX(-14deg);
+  opacity: 0;
+}
+
+/* ── the pen is drawing the devices: ghost placeholder, then body / screen fill in behind the ink ── */
+html.js:not(.no-pen) .mob.is-armed .phone__ghost {
+  opacity: 1;
+}
+html.js:not(.no-pen) .mob.is-armed .is-filled .phone__ghost {
+  opacity: 0;
+  transition: opacity 0.5s var(--ease-out);
+}
+/* the dashed placeholder outline gives way exactly where the pen has been (complement of the body's sweep) */
+html.js:not(.no-pen) .mob.is-armed .phone__ghost::after {
+  -webkit-mask-image: conic-gradient(from 270deg at 50% 50%, transparent calc(var(--a) - 7deg), #000 calc(var(--a) + 3deg), #000 351deg, rgba(0, 0, 0, calc(1 - var(--ra))) 360deg);
+  mask-image: conic-gradient(from 270deg at 50% 50%, transparent calc(var(--a) - 7deg), #000 calc(var(--a) + 3deg), #000 351deg, rgba(0, 0, 0, calc(1 - var(--ra))) 360deg);
+}
+/* the bezel ring (never the interior: that is the screen's job) sweeps round clockwise from the left-middle, soft edge riding the pen tip */
+html.js:not(.no-pen) .mob.is-armed .phone__dev {
+  -webkit-mask-image: conic-gradient(from 270deg at 50% 50%, #000 calc(var(--a) - 7deg), transparent calc(var(--a) + 3deg), transparent 351deg, rgba(0, 0, 0, var(--ra)) 360deg), linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  mask-image: conic-gradient(from 270deg at 50% 50%, #000 calc(var(--a) - 7deg), transparent calc(var(--a) + 3deg), transparent 351deg, rgba(0, 0, 0, var(--ra)) 360deg), linear-gradient(#000 0 0), linear-gradient(#000 0 0);
+  -webkit-mask-clip: border-box, content-box, border-box;
+  mask-clip: border-box, content-box, border-box;
+  mask-composite: intersect, exclude, add;
+}
+html.js:not(.no-pen) .mob.is-armed .is-filled .phone__dev {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+/* the screenshot develops top-down behind a soft feathered edge, from p 0.5 to 1 */
+html.js:not(.no-pen) .mob.is-armed .phone__screen {
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(var(--sp) * 130% - 30%), transparent calc(var(--sp) * 130%));
+  mask-image: linear-gradient(to bottom, #000 calc(var(--sp) * 130% - 30%), transparent calc(var(--sp) * 130%));
+}
+html.js:not(.no-pen) .mob.is-armed .is-filled .phone__screen {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+html.js:not(.no-pen) .mob.is-armed .phone__screen img {
+  transform: scale(calc(1.04 - 0.04 * var(--sp)));
+}
+html.js:not(.no-pen) .mob.is-armed .phone__shine {
+  opacity: calc(var(--sp) * var(--sp));
+}
+/* close: shine sweep, glow pulse behind the phone, caption rises in stagger */
+html.js:not(.no-pen) .mob.is-armed .is-filled .phone__shine i {
+  animation: mob-shine 1.3s 0.12s var(--ease-out) both;
+}
+html.js:not(.no-pen) .mob.is-armed .is-filled .phone__halo {
+  animation: mob-pulse 2.2s var(--ease-out) both;
+}
+@keyframes mob-shine {
+  0% {
+    transform: translateX(-130%) skewX(-14deg);
+    opacity: 0;
+  }
+  15% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateX(330%) skewX(-14deg);
+    opacity: 0;
+  }
+}
+@keyframes mob-pulse {
+  0% {
+    opacity: 0;
+    transform: scale(0.85);
+  }
+  28% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.28;
+    transform: scale(1);
+  }
+}
+html.js:not(.no-pen) .mob.is-armed .mob__cap > * {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+}
+html.js:not(.no-pen) .mob.is-armed .is-filled .mob__cap > * {
+  opacity: 1;
+  transform: none;
+  transition: opacity 0.7s var(--ease-out) calc(0.18s + var(--k, 0) * 90ms), transform 0.9s var(--ease-out) calc(0.18s + var(--k, 0) * 90ms);
+}
+.mob__cap > :nth-child(2) {
+  --k: 1;
+}
+.mob__cap > :nth-child(3) {
+  --k: 2;
+}
+.mob__cap > :nth-child(4) {
+  --k: 3;
+}
+
 @media (hover: hover) {
   .phone:hover {
     transform: scale(var(--s)) translateY(-8px);
+  }
+  .phone:hover .phone__shadow {
     box-shadow:
-      inset 0 0 0 1.5px rgba(255, 255, 255, 0.2),
-      inset 0 0 0 calc(var(--w) * 0.012) #050506,
       0 52px 80px -28px rgba(0, 0, 0, 0.75),
-      0 0 60px -10px rgba(var(--pen-glow), 0.4);
+      0 0 60px -10px rgba(var(--pen-glow), 0.4),
+      0 0 0 1px rgba(0, 0, 0, 0.5);
   }
 }
 .phone:active {
@@ -141,10 +269,9 @@
   outline: 2px solid var(--focus);
   outline-offset: 6px;
 }
-
 .mob__cap {
-  width: min(var(--w), 100%);
-  margin-top: clamp(20px, 2.4vw, 32px);
+  width: min(max(var(--w), 300px), 100%);
+  margin-top: clamp(18px, 2vw, 28px);
 }
 .mob__name {
   margin: 6px 0 0;
@@ -170,10 +297,11 @@
 @media (max-width: 768px) {
   .mob {
     margin-inline: calc(var(--gutter) * -1);
-    --w: min(66vw, 280px);
+    --w0: min(66vw, 280px);
   }
+  .mob__item,
   .mob__item--hero {
-    --w: min(66vw, 280px);
+    --w: var(--w0);
     margin-top: 0;
   }
   .mob__track {

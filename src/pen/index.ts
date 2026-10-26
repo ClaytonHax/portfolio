@@ -7,7 +7,7 @@ import { emit, on } from '../core/bus'
 import { gsap, ScrollTrigger, isMobile, lockScroll, reducedMotion } from '../core/motion'
 import { NS, type Pt, type Rect } from './glyph'
 import { buildIntro, computeLayout, createTimeline, type IntroDOM } from './intro'
-import { buildJourney, lengthAtKey, pointAtLength, type Anchor, type Journey, type Side } from './journey'
+import { buildJourney, lengthAtKey, pointAtLength, rescaleJourney, type Anchor, type Journey, type Side, type TraceShape } from './journey'
 import { createInk } from './ink'
 import { initCursor } from './cursor'
 import { initSignature } from './signature'
@@ -41,14 +41,95 @@ function relRect(el: HTMLElement, root: HTMLElement): Rect | null {
   return { x, y, w, h }
 }
 
-function readAnchors(main: HTMLElement): Anchor[] {
+/** Position and size of `el` inside `root` from layout offsets (no transforms). Falls back to bounding boxes. */
+function offsetWithin(el: HTMLElement, root: HTMLElement): Rect | null {
+  const w = el.offsetWidth
+  const h = el.offsetHeight
+  if (!w && !h) return null
+  let x = 0
+  let y = 0
+  let n: HTMLElement | null = el
+  while (n && n !== root) {
+    x += n.offsetLeft
+    y += n.offsetTop
+    n = n.offsetParent as HTMLElement | null
+  }
+  if (n === root) return { x, y, w, h }
+  const r = el.getBoundingClientRect()
+  const m = root.getBoundingClientRect()
+  return { x: r.left - m.left, y: r.top - m.top, w: r.width, h: r.height }
+}
+
+interface Pin {
+  D: number
+  /** window scroll at which the stage's pin starts */
+  S0: number
+}
+
+/** The trace stop: stage box from its pin-spacer (stable while pinned), shapes by offsets within the stage. */
+function traceAnchor(el: HTMLElement, main: HTMLElement, mobile: boolean): { anchor: Anchor; pin: Pin | null } | null {
+  const spacer = el.parentElement?.classList.contains('pin-spacer') ? el.parentElement : null
+  const base = relRect(spacer ?? el, main)
+  if (!base) return null
+  const rect: Rect = { x: base.x, y: base.y, w: base.w, h: el.offsetHeight || base.h }
+  const INF = 4
+  const shapes: TraceShape[] = []
+  el.querySelectorAll<HTMLElement>('[data-pen-shape]').forEach((sh) => {
+    if (mobile && !sh.hasAttribute('data-pen-shape-mobile')) return
+    const o = offsetWithin(sh, el)
+    if (!o || o.w < 2 || o.h < 2) return
+    // the phone carousel scrolls sideways; the traced hero is the snapped, centred one
+    const ox = mobile ? (rect.w - o.w) / 2 : o.x
+    const r = Number(sh.dataset.penR)
+    shapes.push({
+      id: sh.dataset.penShape || '',
+      x: rect.x + ox - INF,
+      y: rect.y + o.y - INF,
+      w: o.w + INF * 2,
+      h: o.h + INF * 2,
+      r: (Number.isFinite(r) && sh.dataset.penR ? r : o.w * 0.17) + INF,
+    })
+  })
+  if (!shapes.length) return null
+  const D = mobile ? 0 : Math.max(0, Number(el.dataset.penPin) || 0)
+  const T = Number(el.dataset.penPinTop) || 0
+  const vh = window.innerHeight
+  const gap = Number(el.dataset.penGap)
+  const mainTop = main.getBoundingClientRect().top + window.scrollY
+  const anchor: Anchor = {
+    id: el.dataset.penStop || '',
+    side: 'trace',
+    gap: Number.isFinite(gap) && el.dataset.penGap ? gap : 28,
+    rect,
+    shapes,
+    phone: mobile,
+  }
+  if (D > 0) {
+    anchor.pinD = D
+    anchor.pinKey = rect.y - T + vh * TIP_FRAC
+  }
+  return { anchor, pin: D > 0 ? { D, S0: mainTop + rect.y - T } : null }
+}
+
+function readAnchors(main: HTMLElement): { anchors: Anchor[]; pin: Pin | null } {
   const mobile = isMobile()
   const out: Anchor[] = []
+  let pin: Pin | null = null
   const st = mobile && document.getElementById('intro-stage')
   const sr = st ? relRect(st, main) : null
   // phone: swing out to the left edge right under the name, before the tagline, so the line never crosses it
   if (sr) out.push({ id: '', side: 'left', gap: 0, rect: { x: 0, y: sr.y + sr.h - 90, w: 1, h: 2 } })
+  let traced = false
   document.querySelectorAll<HTMLElement>('[data-pen-stop]').forEach((el) => {
+    if (el.dataset.penSide === 'trace' && !traced) {
+      const t = traceAnchor(el, main, mobile)
+      if (t) {
+        traced = true
+        out.push(t.anchor)
+        pin = t.pin
+        return
+      }
+    }
     const rect = relRect(el, main)
     if (!rect || (rect.w < 2 && rect.h < 2)) return
     const raw = (mobile && el.dataset.penSideMobile) || el.dataset.penSide || 'through'
@@ -61,7 +142,7 @@ function readAnchors(main: HTMLElement): Anchor[] {
     }
     out.push({ id: el.dataset.penStop || '', side, gap: Number.isFinite(gap) && el.dataset.penGap ? gap : 28, rect })
   })
-  return out
+  return { anchors: out, pin }
 }
 
 export async function initPen(): Promise<void> {
@@ -79,12 +160,19 @@ export async function initPen(): Promise<void> {
   art.setAttribute('class', 'pen-art')
   const introG = document.createElementNS(NS, 'g')
   introG.setAttribute('class', 'pen-intro')
-  const jGlow = document.createElementNS(NS, 'path')
-  jGlow.setAttribute('class', 'pen-glow')
-  const jPath = document.createElementNS(NS, 'path')
-  jPath.setAttribute('class', 'pen-stroke')
-  const traceG = document.createElementNS(NS, 'g')
-  art.append(introG, jGlow, jPath, traceG)
+  // the line is three path pairs sharing one dash clock: A (before the trace), B (the traced shapes, rides with the
+  // pinned stage), C (after). Glow is a wide faint stroke underneath each stroke.
+  const mkPath = (cls: string) => {
+    const el = document.createElementNS(NS, 'path')
+    el.setAttribute('class', cls)
+    return el
+  }
+  const glows = [mkPath('pen-glow'), mkPath('pen-glow'), mkPath('pen-glow')]
+  const strokes = [mkPath('pen-stroke'), mkPath('pen-stroke'), mkPath('pen-stroke')]
+  const gB = document.createElementNS(NS, 'g')
+  gB.setAttribute('class', 'pen-trace')
+  gB.append(glows[1], strokes[1])
+  art.append(introG, glows[0], strokes[0], gB, glows[2], strokes[2])
   svg.appendChild(art)
   layer.replaceChildren(svg)
 
@@ -97,6 +185,10 @@ export async function initPen(): Promise<void> {
   })
   initCursor(ink)
   initSignature()
+  const setLw = (m: number) => {
+    for (const el of strokes) el.style.strokeWidth = (baseLw * m).toFixed(2)
+    for (const el of glows) el.style.strokeWidth = (baseLw * (3 + m)).toFixed(2)
+  }
   const pulse = { w: 0 }
   function inkDrop() {
     if (reducedMotion) return
@@ -107,78 +199,10 @@ export async function initPen(): Promise<void> {
       duration: 0.25,
       ease: 'power2.out',
       onUpdate: () => {
-        jPath.style.strokeWidth = (baseLw * (1 + 0.4 * pulse.w)).toFixed(2)
-        jGlow.style.strokeWidth = (baseLw * (4 + 0.4 * pulse.w)).toFixed(2)
+        setLw(1 + 0.4 * pulse.w)
       },
     })
   }
-
-  /* ── outlines a section asks the pen to draw (same ink, glow and tip as the journey line) ── */
-  const roundRectPath = (x: number, y: number, w: number, h: number, r: number) => {
-    r = Math.min(r, w / 2, h / 2)
-    const a = (dx: number, dy: number) => `A ${f(r)} ${f(r)} 0 0 1 ${f(dx)} ${f(dy)}`
-    const f = (n: number) => n.toFixed(1)
-    return `M ${f(x + w / 2)} ${f(y)} H ${f(x + w - r)} ${a(x + w, y + r)} V ${f(y + h - r)} ${a(x + w - r, y + h)} H ${f(x + r)} ${a(x, y + h - r)} V ${f(y + r)} ${a(x + r, y)} Z`
-  }
-  on('pen:trace', ({ id, shapes }) => {
-    if (reducedMotion || !shapes.length) {
-      emit('pen:traced', { id })
-      return
-    }
-    const mr = main!.getBoundingClientRect()
-    const made = shapes.map((sh) => {
-      const d = roundRectPath(sh.x - mr.left, sh.y - mr.top, sh.w, sh.h, sh.r)
-      const glow = document.createElementNS(NS, 'path')
-      glow.setAttribute('class', 'pen-glow')
-      const stroke = document.createElementNS(NS, 'path')
-      stroke.setAttribute('class', 'pen-stroke')
-      for (const el of [glow, stroke]) {
-        el.setAttribute('d', d)
-        el.style.strokeWidth = (el === glow ? baseLw * 4 : baseLw).toFixed(2)
-      }
-      traceG.append(glow, stroke)
-      const len = stroke.getTotalLength()
-      for (const el of [glow, stroke]) {
-        el.style.strokeDasharray = `${len} ${len}`
-        el.style.strokeDashoffset = String(len)
-      }
-      return { glow, stroke, len }
-    })
-    const pt = { v: 0 }
-    const line = gsap.timeline({
-      onComplete: () => {
-        emit('pen:traced', { id })
-        gsap.to(made.flatMap((m) => [m.stroke, m.glow]), {
-          opacity: 0,
-          duration: 1,
-          delay: 0.6,
-          ease: 'power1.out',
-          onComplete: () => traceG.replaceChildren(),
-        })
-      },
-    })
-    made.forEach((m) => {
-      line.set(pt, { v: 0 })
-      line.to(pt, {
-        v: 1,
-        duration: 1.25,
-        ease: 'power2.inOut',
-        onUpdate: () => {
-          const o = m.len * (1 - pt.v)
-          m.stroke.style.strokeDashoffset = m.glow.style.strokeDashoffset = String(o)
-          if (held) return
-          const p = m.stroke.getPointAtLength(m.len * pt.v)
-          ink.tip(p.x, p.y + mainTop)
-        },
-      })
-      line.call(() => {
-        if (!held) {
-          const p = m.stroke.getPointAtLength(0)
-          ink.burst(p.x, p.y + mainTop, 36, 5, 3)
-        }
-      })
-    })
-  })
 
   /* ── state ── */
   type Phase = 'idle' | 'playing' | 'skipping' | 'done'
@@ -187,6 +211,12 @@ export async function initPen(): Promise<void> {
   let tl: gsap.core.Timeline | null = null
   let journey: Journey | null = null
   let nativeLen = 1
+  /** native lengths of the A / B / C pieces */
+  let nat = [0, 0, 0]
+  let pin: { D: number; S0: number } | null = null
+  let trY = -1
+  let dimmed = false
+  const shapeP = new Map<string, number>()
   let mainTop = 0
   let maxScroll = 0
   let lastSig = ''
@@ -216,9 +246,27 @@ export async function initPen(): Promise<void> {
     const W = main!.offsetWidth
     const H = main!.offsetHeight
     const st = relRect(stage!, main!) ?? { x: 0, y: 0, w: W, h: window.innerHeight }
-    const anchors = readAnchors(main!)
-    const sig = [W, H, st.x, st.y, st.w, st.h, ...anchors.flatMap((a) => [a.id, a.side, a.gap, a.rect.x, a.rect.y, a.rect.w, a.rect.h])].join('|')
-    return { W, H, st, anchors, sig }
+    const { anchors, pin: pn } = readAnchors(main!)
+    const sig = [
+      W,
+      H,
+      st.x,
+      st.y,
+      st.w,
+      st.h,
+      pn ? `${pn.D}:${Math.round(pn.S0)}` : '',
+      ...anchors.flatMap((a) => [
+        a.id,
+        a.side,
+        a.gap,
+        a.rect.x,
+        a.rect.y,
+        a.rect.w,
+        a.rect.h,
+        ...(a.shapes ?? []).flatMap((q) => [q.id, q.x, q.y, q.w, q.h, q.r]),
+      ]),
+    ].join('|')
+    return { W, H, st, anchors, pin: pn, sig }
   }
 
   function rebuild(force = false) {
@@ -239,8 +287,7 @@ export async function initPen(): Promise<void> {
     const layout = computeLayout(m.st, m.W)
     intro = buildIntro(introG, layout)
     baseLw = layout.lw
-    jPath.style.strokeWidth = baseLw.toFixed(2)
-    jGlow.style.strokeWidth = (baseLw * 4).toFixed(2)
+    setLw(1)
     if (phase === 'done') intro.all.forEach((s) => s.set(1))
     else {
       intro.all.forEach((s) => s.set(0))
@@ -253,14 +300,19 @@ export async function initPen(): Promise<void> {
 
     // journey
     journey = buildJourney(intro.F, intro.tan, m.anchors, m.W, m.H)
-    jPath.setAttribute('d', journey.d)
-    jGlow.setAttribute('d', journey.d)
-    nativeLen = Math.max(1, jPath.getTotalLength())
-    const k = nativeLen / Math.max(1, journey.total)
-    for (let i = 0; i < journey.len.length; i++) journey.len[i] *= k
-    for (const s of journey.stops) s.len *= k
-    journey.approachLen *= k
-    jPath.style.strokeDasharray = jGlow.style.strokeDasharray = `${nativeLen} ${nativeLen}`
+    pin = m.pin
+    const ds = [journey.dA, journey.dB, journey.dC]
+    nat = ds.map((d, i) => {
+      glows[i].setAttribute('d', d)
+      strokes[i].setAttribute('d', d)
+      const n = d ? Math.max(1, strokes[i].getTotalLength()) : 0
+      glows[i].style.strokeDasharray = strokes[i].style.strokeDasharray = `${n} ${n}`
+      return n
+    })
+    rescaleJourney(journey, nat[0], nat[1], nat[2])
+    nativeLen = Math.max(1, nat[0] + nat[1] + nat[2])
+    shapeP.clear()
+    trY = -1
 
     maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
     quiet = true
@@ -269,6 +321,21 @@ export async function initPen(): Promise<void> {
     render(0)
     quiet = false
   }
+
+  /** the traced piece rides with the pinned stage */
+  function applyTrans() {
+    const t = !pin || reducedMotion ? 0 : clamp(window.scrollY - pin.S0, 0, pin.D)
+    if (Math.abs(t - trY) < 0.05) return
+    trY = t
+    gB.setAttribute('transform', `translate(0 ${t.toFixed(2)})`)
+  }
+  const inBy = (l: number) => (journey && l > journey.aLen && l <= journey.bLen ? trY : 0)
+
+  on('pen:dim', ({ id, on: dim }) => {
+    if (!journey || id !== journey.traceId || dim === dimmed) return
+    dimmed = dim
+    gsap.to(gB, { opacity: dim ? 0 : 1, duration: 0.3, ease: 'power1.out', overwrite: true })
+  })
 
   /* ── scroll → path length ── */
   function computeTarget(): number {
@@ -309,10 +376,18 @@ export async function initPen(): Promise<void> {
   function render(moved: number) {
     const j = journey
     if (!j) return
-    jPath.style.strokeDashoffset = jGlow.style.strokeDashoffset = String(nativeLen - curL)
+    applyTrans()
+    let off = 0
+    for (let i = 0; i < 3; i++) {
+      const v = clamp(curL - off, 0, nat[i])
+      const o = String(nat[i] - v)
+      glows[i].style.strokeDashoffset = strokes[i].style.strokeDashoffset = o
+      glows[i].style.visibility = strokes[i].style.visibility = v > 0.01 ? 'visible' : 'hidden'
+      off += nat[i]
+    }
     if (!held && moved !== 0 && curL > 0 && curL < nativeLen - 0.5 && !reducedMotion) {
       pointAtLength(j, curL, tmp)
-      ink.tip(tmp.x, tmp.y + mainTop)
+      ink.tip(tmp.x, tmp.y + mainTop + inBy(curL))
     }
     // stops
     for (const s of j.stops) {
@@ -320,13 +395,22 @@ export async function initPen(): Promise<void> {
       if (hit && !reached.has(s.id)) {
         reached.add(s.id)
         if (!quiet && !reducedMotion && !held) {
-          ink.burst(s.pt.x, s.pt.y + mainTop, 40, 5, 3)
+          ink.burst(s.pt.x, s.pt.y + mainTop + (s.inB ? trY : 0), 40, 5, 3)
           inkDrop()
         }
         if (s.id) emit('pen:reach', { id: s.id })
       } else if (!hit && reached.has(s.id)) {
         reached.delete(s.id)
         if (s.id) emit('pen:leave', { id: s.id })
+      }
+    }
+    // progress of the line round each traced shape
+    for (const sh of j.shapes) {
+      const q = clamp((curL - sh.start) / Math.max(1e-6, sh.end - sh.start), 0, 1)
+      const old = shapeP.get(sh.id)
+      if (old === undefined || Math.abs(q - old) > 0.0015 || ((q === 0 || q === 1) && q !== old)) {
+        shapeP.set(sh.id, q)
+        emit('pen:shape', { id: sh.id, p: q })
       }
     }
     const p = curL / nativeLen
@@ -337,6 +421,7 @@ export async function initPen(): Promise<void> {
   }
 
   function onScroll() {
+    applyTrans()
     if (phase !== 'done' || reducedMotion) return
     tgtL = computeTarget()
     if (tgtL !== curL) wake()
@@ -376,6 +461,8 @@ export async function initPen(): Promise<void> {
     intro?.all.forEach((s) => s.set(1))
     lockScroll(false)
     emit('intro:done', { skipped })
+    shapeP.clear()
+    render(0)
     ScrollTrigger.refresh()
     quiet = false
     tgtL = computeTarget()
@@ -449,6 +536,8 @@ export async function initPen(): Promise<void> {
     rebuild(true)
     lockScroll(false)
     emit('intro:done', { skipped: true })
+    shapeP.clear()
+    render(0)
     onScroll()
     return
   }
