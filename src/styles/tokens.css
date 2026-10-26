@@ -31,7 +31,7 @@
   --glass-shine: rgba(255, 255, 255, 0.8);
   --glass-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.95), inset 0 -1px 0 rgba(255, 255, 255, 0.3),
     0 24px 48px -24px rgba(200, 16, 46, 0.35);
-  --glass-blur: blur(20px) saturate(170%);
+  --glass-blur: blur(12px) saturate(140%);
   --chip-bg: rgba(255, 255, 255, 0.55);
   --chip-border: rgba(18, 20, 24, 0.14);
 
@@ -67,7 +67,7 @@
   --glass-border: rgba(210, 215, 225, 0.16);
   --glass-shine: rgba(255, 110, 110, 0.26);
   --glass-shadow: inset 0 1px 0 rgba(210, 215, 225, 0.18), 0 24px 56px -24px rgba(0, 0, 0, 0.85);
-  --glass-blur: blur(22px) saturate(150%);
+  --glass-blur: blur(14px) saturate(130%);
   --chip-bg: rgba(240, 244, 250, 0.07);
   --chip-border: rgba(210, 215, 225, 0.18);
 

@@ -65,7 +65,7 @@ export function createInk(canvas: HTMLCanvasElement): Ink {
   }
 
   function resize() {
-    dpr = Math.min(window.devicePixelRatio || 1, 2)
+    dpr = Math.min(window.devicePixelRatio || 1, 1.5)
     W = window.innerWidth
     H = window.innerHeight
     canvas.width = Math.round(W * dpr)

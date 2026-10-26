@@ -25,9 +25,17 @@ html {
   overflow: visible;
 }
 
-.pen-art {
-  /* tight, soft glow so cursive edges stay crisp */
+/* Glow on the intro glyphs only (they stop changing once written). The journey line fakes its glow with a wide faint
+   stroke: a CSS filter on a document-tall svg whose dash offset changes every frame re-rasterises all of it on scroll. */
+.pen-intro {
   filter: drop-shadow(0 0 1.5px rgba(var(--pen-glow), 0.45)) drop-shadow(0 0 7px rgba(var(--pen-glow), 0.2));
+}
+.pen-glow {
+  fill: none;
+  stroke: rgb(var(--pen-glow));
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.16;
 }
 .pen-fill {
   fill: var(--ink);

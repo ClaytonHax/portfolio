@@ -110,6 +110,7 @@ html.js:not(.no-pen) .is-in .rvc {
   overflow: hidden;
   pointer-events: none;
   background: var(--bg);
+  isolation: isolate;
   transition: background-color 0.6s var(--ease-out);
 }
 #bg .blobs {
@@ -145,8 +146,7 @@ html.js:not(.no-pen) .is-in .rvc {
   position: absolute;
   border-radius: 50%;
   opacity: var(--blob-opacity);
-  will-change: transform;
-  animation: drift 90s ease-in-out infinite alternate;
+  /* static: an endless drift made every backdrop-filter re-blur every frame, even when idle */
 }
 .blob--1 {
   width: 110vmax;

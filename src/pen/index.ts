@@ -78,9 +78,12 @@ export async function initPen(): Promise<void> {
   const art = document.createElementNS(NS, 'g')
   art.setAttribute('class', 'pen-art')
   const introG = document.createElementNS(NS, 'g')
+  introG.setAttribute('class', 'pen-intro')
+  const jGlow = document.createElementNS(NS, 'path')
+  jGlow.setAttribute('class', 'pen-glow')
   const jPath = document.createElementNS(NS, 'path')
   jPath.setAttribute('class', 'pen-stroke')
-  art.append(introG, jPath)
+  art.append(introG, jGlow, jPath)
   svg.appendChild(art)
   layer.replaceChildren(svg)
 
@@ -102,7 +105,10 @@ export async function initPen(): Promise<void> {
       w: 0,
       duration: 0.25,
       ease: 'power2.out',
-      onUpdate: () => (jPath.style.strokeWidth = (baseLw * (1 + 0.4 * pulse.w)).toFixed(2)),
+      onUpdate: () => {
+        jPath.style.strokeWidth = (baseLw * (1 + 0.4 * pulse.w)).toFixed(2)
+        jGlow.style.strokeWidth = (baseLw * (4 + 0.4 * pulse.w)).toFixed(2)
+      },
     })
   }
 
@@ -166,6 +172,7 @@ export async function initPen(): Promise<void> {
     intro = buildIntro(introG, layout)
     baseLw = layout.lw
     jPath.style.strokeWidth = baseLw.toFixed(2)
+    jGlow.style.strokeWidth = (baseLw * 4).toFixed(2)
     if (phase === 'done') intro.all.forEach((s) => s.set(1))
     else {
       intro.all.forEach((s) => s.set(0))
@@ -179,12 +186,13 @@ export async function initPen(): Promise<void> {
     // journey
     journey = buildJourney(intro.F, intro.tan, m.anchors, m.W, m.H)
     jPath.setAttribute('d', journey.d)
+    jGlow.setAttribute('d', journey.d)
     nativeLen = Math.max(1, jPath.getTotalLength())
     const k = nativeLen / Math.max(1, journey.total)
     for (let i = 0; i < journey.len.length; i++) journey.len[i] *= k
     for (const s of journey.stops) s.len *= k
     journey.approachLen *= k
-    jPath.style.strokeDasharray = `${nativeLen} ${nativeLen}`
+    jPath.style.strokeDasharray = jGlow.style.strokeDasharray = `${nativeLen} ${nativeLen}`
 
     maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight)
     quiet = true
@@ -233,7 +241,7 @@ export async function initPen(): Promise<void> {
   function render(moved: number) {
     const j = journey
     if (!j) return
-    jPath.style.strokeDashoffset = String(nativeLen - curL)
+    jPath.style.strokeDashoffset = jGlow.style.strokeDashoffset = String(nativeLen - curL)
     if (!held && moved !== 0 && curL > 0 && curL < nativeLen - 0.5 && !reducedMotion) {
       pointAtLength(j, curL, tmp)
       ink.tip(tmp.x, tmp.y + mainTop)
