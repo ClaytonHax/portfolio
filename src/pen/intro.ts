@@ -349,7 +349,7 @@ function introEase(t: number): number {
 
 const TAU = 0.03 // pen-tip low-pass time constant, s
 /** playback rate over the authored pace (~6.5s name + ~1.2s swash at 1) */
-const SPEED = 1.35
+const SPEED = 1.8
 
 export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Timeline {
   const segs = intro.all
@@ -360,9 +360,12 @@ export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Tim
   let ft = 0
   let primed = false
   const o = { v: 0 }
+  // last drawn progress per segment: finished/untouched segments are skipped instead of rewritten every frame
+  const drawn = new Float32Array(segs.length).fill(-1)
   const tl = gsap.timeline({ paused: true })
   tl.add(() => {
     segs.forEach((s) => s.set(0))
+    drawn.fill(-1)
     primed = false
   })
   tl.fromTo(
@@ -382,7 +385,10 @@ export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Tim
         for (let i = 0; i < segs.length; i++) {
           const s = segs[i]
           const u = clamp((pos - acc) / s.cost, 0, 1)
-          s.set(u)
+          if (u !== drawn[i]) {
+            drawn[i] = u
+            s.set(u)
+          }
           if (u > 0 && u < 1) {
             pen = s.point(u)
             inking = s.ink
@@ -408,6 +414,7 @@ export function createTimeline(intro: IntroDOM, hooks: PlayHooks): gsap.core.Tim
   )
   tl.add(() => {
     segs.forEach((s) => s.set(1))
+    drawn.fill(1)
     hooks.burst(intro.F)
     hooks.finish()
   })

@@ -21,12 +21,21 @@ export function toast(msg: string): void {
 
 /** Pointer-following shine for glass surfaces. */
 export function shine(el: HTMLElement): void {
+  let raf = 0
+  let ev: PointerEvent | null = null
   el.addEventListener('pointermove', (e) => {
-    const r = el.getBoundingClientRect()
-    el.style.setProperty('--mx', `${((e.clientX - r.left) / r.width) * 100}%`)
-    el.style.setProperty('--my', `${((e.clientY - r.top) / r.height) * 100}%`)
+    ev = e
+    if (raf) return
+    raf = requestAnimationFrame(() => {
+      raf = 0
+      if (!ev) return
+      const r = el.getBoundingClientRect()
+      el.style.setProperty('--mx', `${((ev.clientX - r.left) / r.width) * 100}%`)
+      el.style.setProperty('--my', `${((ev.clientY - r.top) / r.height) * 100}%`)
+    })
   })
   el.addEventListener('pointerleave', () => {
+    ev = null
     el.style.removeProperty('--mx')
     el.style.removeProperty('--my')
   })
