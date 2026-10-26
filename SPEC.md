@@ -208,8 +208,8 @@ highlights). Research each by reading its README / CLAUDE.md / source in `../<fo
 sabine → `../ai` (README.md is long: read the intro, "Use it", "The app", skills/memory/sandbox sections),
 simon → `../Simon` (src/pages, api/, docs/), pathway → `../Hackerthon` (it won 1st place at a hackathon; the app is branded
 "Pathway"; read goal.md, src), lapel → `../lapel` (README, CLAUDE.md, app/api), sjet-rm → `../SJET-Estate`,
-gym → `../gym`, site19 → `../SCP`, cook-a-levels → `../exams`, seed → `../seed`, stop-mildew → `../stop-mildew`,
-sjet-lp → `../SJET-LP`, yearbook → `../voting`, circuit-vault → `../arduino`, mysmartschool → `../MySmartSchool`.
+gym → `../gym`, cook-a-levels → `../exams`, seed → `../seed`, stop-mildew → `../stop-mildew`,
+sjet-lp → `../SJET-LP`, circuit-vault → `../arduino`.
 **Never** mention or read anything about LayerZim, 3D printing or Zim3D. Don't invent numbers/users/metrics — only state
 what the code and READMEs show. Plain, direct, first-person voice ("I built…"), short paragraphs, no buzzwords.
 

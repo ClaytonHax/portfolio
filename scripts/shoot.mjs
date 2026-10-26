@@ -31,7 +31,7 @@ function serve(dir) {
 }
 
 const live = (u, wait = 3500) => ({ url: u, wait })
-// cook-a-levels, yearbook, lapel: skipped (dist built without Firebase env -> blank page; lapel has no build)
+// cook-a-levels, lapel: skipped (dist built without Firebase env -> blank page; lapel has no build)
 const targets = {
   sabine: live('https://getsabine.com'),
   simon: live('https://www.asksimon.co.zw'),
@@ -40,10 +40,8 @@ const targets = {
   pathway: live('https://hackerthon-six.vercel.app'),
   'stop-mildew': live('https://stopmildew.co.za'),
   'sjet-lp': live('https://sjet-lp.vercel.app'),
-  site19: { dir: 'SCP', page: 'site19-breach-monitor.html', wait: 7000 },
   seed: { dir: 'seed', wait: 2000, act: async (p) => { await p.fill('#seedText', 'portfolio'); await p.click('#go'); await p.waitForTimeout(3000) } },
   'circuit-vault': { dir: 'arduino', wait: 2500 },
-  mysmartschool: { dir: 'MySmartSchool', wait: 2500 },
 }
 
 const want = process.argv.slice(2)
