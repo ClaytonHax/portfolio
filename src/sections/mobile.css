@@ -103,6 +103,35 @@
   stroke-linecap: round;
   filter: var(--ink-glow, none);
 }
+/* while the pen is still sketching, the devices are empty outlines; they fill in once all three are drawn */
+.mob.is-sketching .phone {
+  background: transparent;
+  box-shadow: none;
+  pointer-events: none;
+}
+.mob.is-sketching .phone::before,
+.mob.is-sketching .phone::after {
+  opacity: 0;
+}
+.mob.is-sketching .phone__screen,
+.mob.is-sketching .phone__shine,
+.mob.is-sketching .mob__cap {
+  opacity: 0;
+}
+.phone__screen,
+.phone__shine {
+  transition: opacity 0.8s var(--ease-out) calc(var(--i, 0) * 120ms);
+}
+.mob .phone {
+  transition: transform 0.45s var(--ease-out), box-shadow 0.8s var(--ease-out);
+}
+.mob .phone::before,
+.mob .phone::after {
+  transition: opacity 0.8s var(--ease-out);
+}
+.mob__item .mob__cap {
+  transition: opacity 0.8s var(--ease-out) calc(0.25s + var(--i, 0) * 120ms);
+}
 .phone__shine {
   position: absolute;
   inset: calc(var(--w) * 0.034);

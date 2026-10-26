@@ -60,11 +60,12 @@ export function initMobile(): void {
     ),
   )
 
-  // each device is sketched in as the row scrolls in: a quick pen stroke round the bezel, then it fades back
+  // the pen sketches all three devices first, then the screens and captions fill into the drawn outlines
   if (!reducedMotion) {
     const NS = 'http://www.w3.org/2000/svg'
     const PAD = 7
-    items.forEach((it, i) => {
+    stage.classList.add('is-sketching')
+    const draws = items.map((it) => {
       const phone = it.querySelector<HTMLElement>('.phone')!
       const svg = document.createElementNS(NS, 'svg')
       svg.setAttribute('class', 'phone__draw')
@@ -75,23 +76,31 @@ export function initMobile(): void {
       svg.append(rect)
       phone.append(svg)
       gsap.set(rect, { strokeDasharray: 1, strokeDashoffset: 1, opacity: 1 })
-      ScrollTrigger.create({
-        trigger: it,
-        start: 'top 68%',
-        once: true,
-        onEnter: () => {
+      return { phone, svg, rect }
+    })
+    const fill = () => {
+      stage.classList.remove('is-sketching')
+      draws.forEach((d) => d.svg.remove())
+    }
+    ScrollTrigger.create({
+      trigger: stage,
+      start: 'top 68%',
+      once: true,
+      onEnter: () => {
+        const tl = gsap.timeline({ onComplete: fill })
+        draws.forEach(({ phone, svg, rect }, i) => {
           const w = phone.offsetWidth
           const h = phone.offsetHeight
           svg.setAttribute('viewBox', `${-PAD} ${-PAD} ${w + PAD * 2} ${h + PAD * 2}`)
           rect.setAttribute('width', String(w))
           rect.setAttribute('height', String(h))
           rect.setAttribute('rx', String(w * 0.17))
-          gsap
-            .timeline({ delay: 0.1 + i * 0.18, onComplete: () => svg.remove() })
-            .to(rect, { strokeDashoffset: 0, duration: 1.15, ease: 'power2.inOut' })
-            .to(rect, { opacity: 0, duration: 0.9, ease: 'power1.out' }, '+=0.25')
-        },
-      })
+          tl.to(rect, { strokeDashoffset: 0, duration: 1.15, ease: 'power2.inOut' }, 0.1 + i * 0.25)
+        })
+        // all three outlines are down: fill them in (CSS transitions), then let the pen strokes fade
+        tl.call(() => stage.classList.remove('is-sketching'), undefined, '+=0.1')
+        tl.to(draws.map((d) => d.rect), { opacity: 0, duration: 0.9, ease: 'power1.out', stagger: 0.12 }, '<')
+      },
     })
   }
 
