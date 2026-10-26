@@ -9,7 +9,6 @@ export function initWork(): void {
   const sec = document.getElementById('work')
   if (!sec) return
   const flagship = projects.filter((p) => p.tier === 'flagship')
-  const featured = projects.filter((p) => p.tier === 'featured')
 
   sec.innerHTML = `
     <div class="container sec-in">
@@ -41,35 +40,9 @@ export function initWork(): void {
           })
           .join('')}
       </div>
-
-      ${
-        featured.length
-          ? `<div class="featured">
-        <h3 class="subhead rv">Also shipped</h3>
-        <div class="tiles tiles--feat rvg" data-pen-stop="work-featured" data-pen-side="right" data-pen-side-mobile="through">
-          ${featured
-            .map(
-              (p, i) => `
-          <button type="button" class="tile glass rvc" style="--i:${i}" data-id="${p.id}">
-            ${projectImage(p, '(min-width: 1440px) 30vw, (min-width: 769px) 44vw, 92vw')}
-            <span class="tile__body">
-              <span class="tile__top"><span class="eyebrow">${p.category}</span><span class="eyebrow">${p.year}</span></span>
-              <span class="tile__title">${p.title}</span>
-              <span class="tile__tag">${p.tagline}</span>
-              <span class="sr-only">, open case study</span>
-            </span>
-          </button>`,
-            )
-            .join('')}
-        </div>
-      </div>`
-          : ''
-      }
     </div>`
 
   reveal(sec.querySelector<HTMLElement>('.sec-head')!)
-  const sub = sec.querySelector<HTMLElement>('.subhead')
-  if (sub) reveal(sub)
 
   const finePointer = !isTouch && window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
@@ -106,13 +79,4 @@ export function initWork(): void {
       })
     }
   })
-
-  const grid = sec.querySelector<HTMLElement>('.tiles--feat')
-  if (grid) {
-    reveal(grid, { stop: 'work-featured' })
-    grid.querySelectorAll<HTMLButtonElement>('.tile').forEach((t) => {
-      shine(t)
-      t.addEventListener('click', () => emit('case:open', { id: t.dataset.id!, from: t }))
-    })
-  }
 }

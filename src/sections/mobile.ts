@@ -18,7 +18,7 @@ export function initMobile(): void {
 
   sec.innerHTML = `
     <div class="container sec-in">
-      ${sectionHead('06', 'Built for thumbs', 'Built for thumbs.', 'mobile-title', 'Most of what I build gets opened on a phone first. These are laid out for one hand, then scaled up.')}
+      ${sectionHead('04', 'Also shipped', 'Also shipped.', 'mobile-title', 'Most of what I build gets opened on a phone first, so these are laid out for one hand, installable to the home screen, and fast on a patchy connection. Then they scale up to desktop.')}
       <div class="mob" data-pen-stop="mobile" data-pen-side="right" data-pen-side-mobile="through" data-pen-gap="28">
         <div class="mob__glow" aria-hidden="true"></div>
         <ul class="mob__track" role="list" aria-label="Phone app screens">
