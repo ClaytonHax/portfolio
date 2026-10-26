@@ -55,8 +55,20 @@ export interface Profile {
 
 /** Pen slows by SLOW (~35%) on the tightest curvature: time per length is 1 + K*c, c in 0..1. */
 const SLOW_K = 1 / 0.65 - 1
-export function profileOf(el: SVGPathElement, len: number, r0: number): Profile {
-  const n = Math.max(24, Math.min(260, Math.round(len / 3)))
+/** Glyph strokes are laid out in glyph units, so their profile never changes between rebuilds. */
+const profCache = new Map<string, Profile>()
+
+export function profileOf(el: SVGPathElement, len: number, r0: number, cacheKey?: string): Profile {
+  const hit = cacheKey ? profCache.get(cacheKey) : undefined
+  if (hit) return hit
+  const pr = computeProfile(el, len, r0)
+  if (cacheKey) profCache.set(cacheKey, pr)
+  return pr
+}
+
+// getPointAtLength is the slow part of start-up (hundreds of calls per stroke), so sample sparsely: the curvature is smoothed anyway.
+function computeProfile(el: SVGPathElement, len: number, r0: number): Profile {
+  const n = Math.max(24, Math.min(140, Math.round(len / 5)))
   const ds = len / n
   const px = new Float32Array(n + 1)
   const py = new Float32Array(n + 1)
@@ -206,6 +218,7 @@ export function buildBlock(spec: BlockSpec, parent: SVGElement): Block {
   parent.appendChild(n)
   const els = [...n.querySelectorAll<SVGPathElement>('mask path')]
   let k = 0
+  const r0k = 30
   const refs = defs.map((g) =>
     g.map((st) => {
       const el = els[k++]
@@ -220,7 +233,7 @@ export function buildBlock(spec: BlockSpec, parent: SVGElement): Block {
         lift: !!st.lift,
         a: { x: a[0], y: a[1] },
         b: { x: b[0], y: b[1] },
-        prof: profileOf(el, len, 30),
+        prof: profileOf(el, len, 30, `${r0k}|${el.getAttribute('d')}`),
         reveal(f: number) {
           el.style.strokeDashoffset = String(len * (1 - Math.min(1, Math.max(0, f))))
         },
