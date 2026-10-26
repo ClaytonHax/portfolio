@@ -9,8 +9,9 @@ const CHAPTERS: { id: string; n: string; label: string }[] = [
   { id: 'process', n: '03', label: 'How I work' },
   { id: 'work', n: '04', label: 'Selected work' },
   { id: 'more', n: '05', label: 'More things I’ve made' },
-  { id: 'stack', n: '06', label: 'Toolbox' },
-  { id: 'contact', n: '07', label: 'Let’s build something' },
+  { id: 'mobile', n: '06', label: 'Built for thumbs' },
+  { id: 'stack', n: '07', label: 'Toolbox' },
+  { id: 'contact', n: '08', label: 'Let’s build something' },
 ]
 
 export function initChapters(): void {

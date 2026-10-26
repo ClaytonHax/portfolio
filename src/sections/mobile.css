@@ -1,0 +1,197 @@
+/* ── #mobile — phone-first apps ─────────────────────────────── */
+.mob {
+  position: relative;
+  --w: 292px;
+}
+.mob__glow {
+  position: absolute;
+  inset: 4% 8% auto;
+  height: 70%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgba(var(--pen-glow), 0.28), transparent 72%);
+  pointer-events: none;
+}
+.mob__track {
+  position: relative;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: start;
+  gap: clamp(20px, 4vw, 72px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.mob__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  --s: 1;
+}
+.mob__item--hero {
+  --w: 332px;
+  margin-top: -28px;
+}
+
+/* the device: bezel, side keys, glass glare. The screen is the real screenshot (390 x 844). */
+.phone {
+  --py: 0px;
+  position: relative;
+  display: block;
+  width: var(--w);
+  max-width: 100%;
+  padding: calc(var(--w) * 0.034);
+  border: 0;
+  border-radius: calc(var(--w) * 0.17);
+  background: linear-gradient(150deg, #2b2e34, #0c0d10 55%, #23262c);
+  box-shadow:
+    inset 0 0 0 1.5px rgba(255, 255, 255, 0.14),
+    inset 0 0 0 calc(var(--w) * 0.012) #050506,
+    0 40px 70px -28px rgba(0, 0, 0, 0.7),
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+  cursor: pointer;
+  translate: 0 var(--py);
+  transform: scale(var(--s));
+  transform-origin: center top;
+  transition: transform 0.45s var(--ease-out), box-shadow 0.45s var(--ease-out);
+  -webkit-tap-highlight-color: transparent;
+}
+.phone::before,
+.phone::after {
+  content: '';
+  position: absolute;
+  width: 3px;
+  border-radius: 2px;
+  background: #1a1c21;
+}
+.phone::before {
+  left: -3px;
+  top: 18%;
+  height: 9%;
+  box-shadow: 0 calc(var(--w) * 0.2) 0 #1a1c21;
+}
+.phone::after {
+  right: -3px;
+  top: 25%;
+  height: 14%;
+}
+.phone__screen {
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 390 / 844;
+  border-radius: calc(var(--w) * 0.135);
+  background: #0b0c0e;
+}
+.phone__screen img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.phone__shine {
+  position: absolute;
+  inset: calc(var(--w) * 0.034);
+  border-radius: calc(var(--w) * 0.135);
+  background: linear-gradient(115deg, rgba(255, 255, 255, 0.16), transparent 32%, transparent 70%, rgba(255, 255, 255, 0.05));
+  pointer-events: none;
+}
+@media (hover: hover) {
+  .phone:hover {
+    transform: scale(var(--s)) translateY(-8px);
+    box-shadow:
+      inset 0 0 0 1.5px rgba(255, 255, 255, 0.2),
+      inset 0 0 0 calc(var(--w) * 0.012) #050506,
+      0 52px 80px -28px rgba(0, 0, 0, 0.75),
+      0 0 60px -10px rgba(var(--pen-glow), 0.4);
+  }
+}
+.phone:active {
+  transform: scale(calc(var(--s) * 0.985));
+}
+.phone:focus-visible {
+  outline: 2px solid var(--focus);
+  outline-offset: 6px;
+}
+
+.mob__cap {
+  width: min(var(--w), 100%);
+  margin-top: clamp(20px, 2.4vw, 32px);
+}
+.mob__name {
+  margin: 6px 0 0;
+  font-size: var(--step-1);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  color: var(--text);
+}
+.mob__note {
+  margin: 8px auto 14px;
+  max-width: 28ch;
+  font-size: 0.95rem;
+  color: var(--text-dim);
+}
+.mob__cap .chips {
+  justify-content: center;
+}
+.mob__dots {
+  display: none;
+}
+
+/* phones: a swipeable snap carousel, centre device scaled up */
+@media (max-width: 768px) {
+  .mob {
+    margin-inline: calc(var(--gutter) * -1);
+    --w: min(66vw, 280px);
+  }
+  .mob__item--hero {
+    --w: min(66vw, 280px);
+    margin-top: 0;
+  }
+  .mob__track {
+    display: flex;
+    gap: 0;
+    padding: 12px 0 8px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+  .mob__track::-webkit-scrollbar {
+    display: none;
+  }
+  .mob__item {
+    flex: 0 0 78vw;
+    scroll-snap-align: center;
+    scroll-snap-stop: always;
+  }
+  .mob__item .phone {
+    transform-origin: center center;
+  }
+  .mob__item .mob__cap {
+    opacity: calc((var(--s) - 0.86) * 7.2);
+    transition: opacity 0.2s;
+  }
+  .mob__dots {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 18px;
+  }
+  .mob__dots i {
+    width: 7px;
+    height: 7px;
+    border-radius: 999px;
+    background: var(--chip-border);
+    transition: width 0.35s var(--ease-out), background-color 0.25s;
+  }
+  .mob__dots i.is-on {
+    width: 22px;
+    background: var(--accent);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .phone {
+    transition: none;
+  }
+}
