@@ -5,8 +5,9 @@ import { scrollTo, ScrollTrigger, lockScroll, reducedMotion } from '../core/moti
 import { icons } from './icons'
 
 const LINKS = [
-  { label: 'Work', target: '#work', sections: ['work', 'more'] },
+  { label: 'About', target: '#about', sections: ['about'] },
   { label: 'Process', target: '#process', sections: ['process'] },
+  { label: 'Work', target: '#work', sections: ['work', 'more'] },
   { label: 'Stack', target: '#stack', sections: ['stack'] },
   { label: 'Contact', target: '#contact', sections: ['contact'] },
 ]
@@ -32,7 +33,7 @@ export function initNav(): void {
     </div>
     <div class="nav__pill glass">
       <a class="nav__brand" href="#main" aria-label="Clayton Banks — home">${wordmark()}<i class="nav__brand-line" aria-hidden="true"></i></a>
-      <nav class="nav__links" aria-label="Primary">${linkHtml('nav__link')}</nav>
+      <nav class="nav__links" aria-label="Primary"><i class="nav__ink" aria-hidden="true"></i>${linkHtml('nav__link')}</nav>
       <div class="nav__actions">
         <button type="button" class="nav__icon nav__theme" aria-pressed="false" aria-label="Night theme">
           <span class="nav__ico nav__ico--sun">${icons.sun}</span><span class="nav__ico nav__ico--moon">${icons.moon}</span>
@@ -138,6 +139,36 @@ export function initNav(): void {
       onToggle: (self) => setActive(id, self.isActive),
     })
   })
+
+  // sliding highlight: the leading edge moves first, the trailing edge follows, so it stretches between links
+  const linksEl = nav.querySelector<HTMLElement>('.nav__links')!
+  const ink = linksEl.querySelector<HTMLElement>('.nav__ink')!
+  const inkLinks = [...linksEl.querySelectorAll<HTMLElement>('.nav__link')]
+  let inkAt = -1
+  const moveInk = (instant = false) => {
+    const i = inkLinks.findIndex((a) => a.classList.contains('is-active'))
+    if (i < 0) {
+      ink.classList.remove('is-on')
+      inkAt = -1
+      return
+    }
+    const a = inkLinks[i]
+    if (a.offsetWidth === 0) return
+    const left = a.offsetLeft
+    const right = linksEl.clientWidth - left - a.offsetWidth
+    const first = inkAt < 0 || instant || reducedMotion
+    const fwd = i > inkAt
+    ink.style.transition = first ? 'none' : ''
+    ink.style.transitionDelay = first ? '0s' : fwd ? '0s, 0.09s' : '0.09s, 0s' // [left, right]
+    ink.style.left = left + 'px'
+    ink.style.right = right + 'px'
+    ink.classList.add('is-on')
+    inkAt = i
+  }
+  const inkWatch = new MutationObserver(() => moveInk())
+  inkLinks.forEach((a) => inkWatch.observe(a, { attributes: true, attributeFilter: ['class'] }))
+  window.addEventListener('resize', () => moveInk(true))
+  on('intro:done', () => requestAnimationFrame(() => moveInk(true)))
 
   // progress hairline
   let target = 0
