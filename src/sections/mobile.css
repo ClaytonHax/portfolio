@@ -88,6 +88,21 @@
   height: 100%;
   object-fit: cover;
 }
+.phone__draw {
+  position: absolute;
+  inset: -7px;
+  width: calc(100% + 14px);
+  height: calc(100% + 14px);
+  overflow: visible;
+  pointer-events: none;
+}
+.phone__draw rect {
+  fill: none;
+  stroke: var(--ink, var(--accent));
+  stroke-width: 2;
+  stroke-linecap: round;
+  filter: var(--ink-glow, none);
+}
 .phone__shine {
   position: absolute;
   inset: calc(var(--w) * 0.034);

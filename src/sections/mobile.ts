@@ -1,6 +1,6 @@
 import { projects } from '../data/projects'
 import { emit } from '../core/bus'
-import { gsap, reducedMotion } from '../core/motion'
+import { gsap, ScrollTrigger, reducedMotion } from '../core/motion'
 import { reveal } from './reveal'
 import { sectionHead } from './ui'
 
@@ -59,6 +59,41 @@ export function initMobile(): void {
       emit('case:open', { id: it.dataset.id!, from: e.currentTarget as HTMLElement }),
     ),
   )
+
+  // each device is sketched in as the row scrolls in: a quick pen stroke round the bezel, then it fades back
+  if (!reducedMotion) {
+    const NS = 'http://www.w3.org/2000/svg'
+    const PAD = 7
+    items.forEach((it, i) => {
+      const phone = it.querySelector<HTMLElement>('.phone')!
+      const svg = document.createElementNS(NS, 'svg')
+      svg.setAttribute('class', 'phone__draw')
+      svg.setAttribute('aria-hidden', 'true')
+      svg.setAttribute('focusable', 'false')
+      const rect = document.createElementNS(NS, 'rect')
+      rect.setAttribute('pathLength', '1')
+      svg.append(rect)
+      phone.append(svg)
+      gsap.set(rect, { strokeDasharray: 1, strokeDashoffset: 1, opacity: 1 })
+      ScrollTrigger.create({
+        trigger: it,
+        start: 'top 85%',
+        once: true,
+        onEnter: () => {
+          const w = phone.offsetWidth
+          const h = phone.offsetHeight
+          svg.setAttribute('viewBox', `${-PAD} ${-PAD} ${w + PAD * 2} ${h + PAD * 2}`)
+          rect.setAttribute('width', String(w))
+          rect.setAttribute('height', String(h))
+          rect.setAttribute('rx', String(w * 0.17))
+          gsap
+            .timeline({ delay: i * 0.12, onComplete: () => svg.remove() })
+            .to(rect, { strokeDashoffset: 0, duration: 0.85, ease: 'power2.inOut' })
+            .to(rect, { opacity: 0, duration: 0.5, ease: 'power1.out' }, '-=0.1')
+        },
+      })
+    })
+  }
 
   const mq = window.matchMedia('(max-width: 768px)')
 
