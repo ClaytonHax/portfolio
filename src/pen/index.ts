@@ -300,6 +300,10 @@ export async function initPen(): Promise<void> {
     skipEvents.forEach((ev) => window.removeEventListener(ev, onSkipEvent))
     skipBtn?.remove()
     skipBtn = null
+    if (deferred) {
+      deferred = false
+      rebuild()
+    }
     // Skipping fast-forwards through the whole timeline; make sure the drawn state is final.
     intro?.all.forEach((s) => s.set(1))
     lockScroll(false)
@@ -312,7 +316,15 @@ export async function initPen(): Promise<void> {
 
   /* ── wiring ── */
   let raf = 0
-  const schedule = () => {
+  /** a layout change arrived mid-intro; applied once the intro is done */
+  let deferred = false
+  const schedule = (urgent = false) => {
+    // Late fonts/images fire layout changes while the name is being written. Rebuilding then tears down and
+    // recreates the whole intro timeline mid-stroke (a visible hitch on a cold load), so wait until it is done.
+    if (!urgent && (phase === 'playing' || phase === 'skipping')) {
+      deferred = true
+      return
+    }
     if (raf) return
     raf = requestAnimationFrame(() => {
       raf = 0
@@ -325,7 +337,7 @@ export async function initPen(): Promise<void> {
   window.addEventListener('resize', () => {
     ink.resize()
     clearTimeout(resizeTimer)
-    resizeTimer = window.setTimeout(schedule, 90)
+    resizeTimer = window.setTimeout(() => schedule(true), 90)
   })
   on('layout:change', () => {
     clearTimeout(resizeTimer)
