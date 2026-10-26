@@ -26,6 +26,8 @@ export interface Anchor {
   /** pin distance (0 = none) and the journey key at which the pin starts */
   pinD?: number
   pinKey?: number
+  /** extra pinned scroll after the trace, during which the line holds at the stage's exit */
+  pinHold?: number
   /** `trace` only: line arrives from the right gutter (desktop) or from the left gutter (phone) and leaves the same way */
   phone?: boolean
 }
@@ -279,7 +281,7 @@ export function buildJourney(F: Pt, tan: Pt, anchors: Anchor[], W: number, H: nu
         )
       }
       traceD = Math.max(0, a.pinD ?? 0)
-      const exitWay: Way = { p: P(E.x, E.y + traceD), t: { x: 0, y: 1 }, via: items }
+      const exitWay: Way = { p: P(E.x, E.y + traceD + Math.max(0, a.pinHold ?? 0)), t: { x: 0, y: 1 }, via: items }
       ways.push(exitWay)
       traceExitWay = ways.length - 1
       if (traceD > 0 && a.pinKey !== undefined) {

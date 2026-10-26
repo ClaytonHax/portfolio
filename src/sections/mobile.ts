@@ -21,6 +21,7 @@ export function initMobile(): void {
       ${sectionHead('04', 'Also shipped', 'Also shipped.', 'mobile-title', 'Most of what I build gets opened on a phone first, so these are laid out for one hand, installable to the home screen, and fast on a patchy connection. Then they scale up to desktop.')}
       <div class="mob" data-pen-stop="mobile" data-pen-side="trace">
         <div class="mob__glow" aria-hidden="true"></div>
+        <div class="mob__veil" aria-hidden="true"></div>
         <ul class="mob__track" role="list" aria-label="Phone app screens">
           ${apps
             .map(
@@ -46,6 +47,19 @@ export function initMobile(): void {
             )
             .join('')}
         </ul>
+        <div class="mob__focus" aria-hidden="true">
+          ${apps
+            .map(
+              (a) => `
+          <div class="mob__fx" data-id="${a.id}">
+            <p class="eyebrow">${a.p.category} <span aria-hidden="true">&middot;</span> ${a.p.year}</p>
+            <h3 class="mob__fx-name">${a.p.title}</h3>
+            <p class="mob__fx-note">${a.note}</p>
+            <ul class="chips">${a.feats.map((f) => `<li class="chip">${f}</li>`).join('')}</ul>
+          </div>`,
+            )
+            .join('')}
+        </div>
         <div class="mob__dots" aria-hidden="true">${apps.map(() => '<i></i>').join('')}</div>
       </div>
     </div>`
@@ -256,22 +270,123 @@ export function initMobile(): void {
   window.addEventListener('resize', measure)
   if (typeof ResizeObserver !== 'undefined') new ResizeObserver(measure).observe(phones[heroIdx])
 
-  // ── desktop: size the row to the viewport and pin it while the line traces the phones ──
+  // ── desktop: size the row to the viewport and pin it while the line traces the phones, then zoom in on each one ──
   if (!reducedMotion) {
+    const focus = [...stage.querySelectorAll<HTMLElement>('.mob__fx')]
     gsap.matchMedia().add('(min-width: 769px)', () => {
       let T = 0
       let D = 0
+      let Z = 0
       let dirty = false
+      /** camera targets per phone: where its centre sits in the stage, and the scale that fills the viewport height */
+      let cam: { x: number; y: number; s: number }[] = []
+      let home = { x: 0, y: 0 }
+      let dimmed = false
       const compute = () => {
         const vh = window.innerHeight
+        const vw = window.innerWidth
         D = Math.round(vh * 2.4)
+        Z = Math.round(vh * 3.2)
         T = Math.max(96, Math.round((vh - stage.offsetHeight) / 2))
-        const changed = stage.dataset.penPin !== String(D) || stage.dataset.penPinTop !== String(T)
+        const changed = stage.dataset.penPin !== String(D) || stage.dataset.penPinTop !== String(T) || stage.dataset.penHold !== String(Z)
         stage.dataset.penPin = String(D)
         stage.dataset.penPinTop = String(T)
+        stage.dataset.penHold = String(Z)
         if (changed) dirty = true
+        // layout offsets ignore transforms, so these stay valid mid-zoom
+        const at = (el: HTMLElement) => {
+          let x = 0
+          let y = 0
+          for (let n: HTMLElement | null = el; n && n !== stage; n = n.offsetParent as HTMLElement | null) {
+            x += n.offsetLeft
+            y += n.offsetTop
+          }
+          return { x, y }
+        }
+        const sl = stage.getBoundingClientRect().left
+        const to = at(track)
+        home = { x: to.x, y: to.y }
+        cam = phones.map((ph) => {
+          const o = at(ph)
+          return { x: o.x + ph.offsetWidth / 2, y: o.y + ph.offsetHeight / 2, s: (vh * 0.8) / Math.max(1, ph.offsetHeight) }
+        })
+        stage.style.setProperty('--sl', sl + 'px')
+        stage.style.setProperty('--st', T + 'px')
+        stage.style.setProperty('--vw', vw + 'px')
+        stage.style.setProperty('--vh', vh + 'px')
+        // the phone being studied sits right of centre, its caption on the left
+        stage.style.setProperty('--gx', vw * 0.66 - sl + 'px')
+        stage.style.setProperty('--gy', vh / 2 + 36 - T + 'px')
+        stage.style.setProperty('--fl', vw * 0.07 - sl + 'px')
+        stage.style.setProperty('--fw', Math.min(vw * 0.34, 440) + 'px')
       }
+
+      // keyframes over the zoom range: -1 = the resting trio, 0..2 = that phone filling the frame
+      const KEYS: [number, number][] = [
+        [0, -1],
+        [0.15, 0],
+        [0.33, 0],
+        [0.45, 1],
+        [0.63, 1],
+        [0.75, 2],
+        [0.87, 2],
+        [1, -1],
+      ]
+      const ease = (x: number) => {
+        const t = Math.min(1, Math.max(0, x))
+        return t * t * t * (t * (t * 6 - 15) + 10)
+      }
+      const weights = (z: number): number[] => {
+        let i = 1
+        while (i < KEYS.length - 1 && z > KEYS[i][0]) i++
+        const [a, ka] = KEYS[i - 1]
+        const [b, kb] = KEYS[i]
+        const e = ka === kb ? 0 : ease((z - a) / (b - a))
+        return phones.map((_, k) => (ka === k ? 1 - e : 0) + (kb === k ? e : 0))
+      }
+
+      /** z 0..1 through the zoom: push the row so the weighted phone lands on the focus point */
+      const frame = (z: number) => {
+        const w = weights(z)
+        const zm = w.reduce((a, b) => a + b, 0)
+        const gX = parseFloat(stage.style.getPropertyValue('--gx')) || 0
+        const gY = parseFloat(stage.style.getPropertyValue('--gy')) || 0
+        // rest: identity about the row's own origin
+        const r = 1 - zm
+        let s = r
+        let fx = r * home.x
+        let fy = r * home.y
+        let gx = r * home.x
+        let gy = r * home.y
+        let idx = 0
+        w.forEach((q, k) => {
+          s += q * cam[k].s
+          fx += q * cam[k].x
+          fy += q * cam[k].y
+          gx += q * gX
+          gy += q * gY
+          idx += q * k
+        })
+        const focal = zm > 0.0001 ? idx / zm : 0
+        track.style.transform = zm > 0.0001 ? `translate(${(gx - home.x - s * (fx - home.x)).toFixed(2)}px, ${(gy - home.y - s * (fy - home.y)).toFixed(2)}px) scale(${s.toFixed(4)})` : ''
+        stage.style.setProperty('--zm', zm.toFixed(3))
+        items.forEach((it, k) => {
+          it.style.setProperty('--f', w[k].toFixed(3))
+          focus[k]?.style.setProperty('--f', w[k].toFixed(3))
+          // the 3D tilt only exists while a phone is travelling: a flat phone keeps a crisp, re-rasterised screen
+          const ry = Math.max(-1, Math.min(1, k - focal)) * -20 * zm
+          if (Math.abs(ry) > 0.4) it.style.setProperty('--tf', `perspective(1400px) rotateY(${ry.toFixed(2)}deg)`)
+          else it.style.removeProperty('--tf')
+        })
+        const dim = zm > 0.001
+        if (dim !== dimmed) {
+          dimmed = dim
+          emit('pen:dim', { id: 'mobile', on: dim })
+        }
+      }
+
       compute()
+      const zoomAt = () => D * 0.9
       const st = ScrollTrigger.create({
         trigger: stage,
         pin: true,
@@ -283,19 +398,32 @@ export function initMobile(): void {
           compute()
           return 'top top+=' + T
         },
-        end: () => '+=' + D,
-        onRefresh: () => {
+        end: () => '+=' + (D + Z),
+        onRefresh: (self) => {
+          frame(Math.min(1, Math.max(0, (self.scroll() - self.start - zoomAt()) / (D + Z - zoomAt()))))
           if (dirty) {
             dirty = false
             queueMicrotask(() => emit('layout:change'))
           }
         },
+        onUpdate: (self) => frame(Math.min(1, Math.max(0, (self.scroll() - self.start - zoomAt()) / (D + Z - zoomAt())))),
       })
+      stage.classList.add('is-zoom')
       queueMicrotask(() => emit('layout:change'))
       return () => {
         st.kill()
+        stage.classList.remove('is-zoom')
+        track.style.transform = ''
+        stage.style.removeProperty('--zm')
+        items.forEach((it) => {
+          it.style.removeProperty('--f')
+          it.style.removeProperty('--tf')
+        })
+        focus.forEach((fx) => fx.style.removeProperty('--f'))
+        if (dimmed) emit('pen:dim', { id: 'mobile', on: false })
         delete stage.dataset.penPin
         delete stage.dataset.penPinTop
+        delete stage.dataset.penHold
         emit('layout:change')
       }
     })

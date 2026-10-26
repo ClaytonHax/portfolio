@@ -2,7 +2,7 @@
 .mob {
   position: relative;
   /* side phones size off the viewport height so the whole row + captions fits while pinned */
-  --w0: clamp(150px, calc((100svh - 420px) / 2.3), 292px);
+  --w0: clamp(160px, calc((100svh - 418px) / 2.1), 330px);
 }
 .mob__glow {
   position: absolute;
@@ -36,6 +36,85 @@
   margin-top: 0;
 }
 
+/* ── desktop zoom: after the pen is done the row is pushed in on each phone in turn (JS drives --zm, --f, --ry) ── */
+.mob__veil,
+.mob__focus {
+  display: none;
+}
+.mob.is-zoom .mob__veil {
+  display: block;
+  position: absolute;
+  left: calc(var(--sl) * -1);
+  top: calc(var(--st) * -1);
+  width: var(--vw);
+  height: var(--vh);
+  pointer-events: none;
+  opacity: var(--zm, 0);
+  /* a vignette round the phone being studied */
+  background:
+    radial-gradient(ellipse 46% 62% at calc(var(--gx) + var(--sl)) 50%, transparent 30%, color-mix(in srgb, var(--bg) 86%, transparent) 100%),
+    color-mix(in srgb, var(--bg) 38%, transparent);
+}
+.mob.is-zoom .mob__track {
+  transform-origin: 0 0;
+}
+html.js:not(.no-pen) .mob.is-zoom .mob__item.rvc,
+.mob.is-zoom .mob__item {
+  /* the phones not being studied step back */
+  transition: none;
+  animation: none; /* the entrance rise holds opacity at 1 */
+  opacity: calc(1 - var(--zm, 0) * min(1, (1 - var(--f, 0)) * 3.2) * 0.92);
+}
+.mob.is-zoom .phone__halo {
+  animation: none;
+  opacity: 0;
+}
+.mob.is-zoom .mob__cap {
+  opacity: calc(1 - var(--zm, 0) * 1.6);
+}
+.mob.is-zoom .phone__shadow {
+  box-shadow:
+    0 calc(40px + var(--f, 0) * 90px) calc(70px + var(--f, 0) * 80px) calc(-28px - var(--f, 0) * 6px) rgba(0, 0, 0, 0.7),
+    0 0 calc(var(--f, 0) * 120px) calc(var(--f, 0) * -10px) rgba(var(--pen-glow), calc(var(--f, 0) * 0.55)),
+    0 0 0 1px rgba(0, 0, 0, 0.5);
+  transition: none;
+}
+.mob.is-zoom .mob__focus {
+  display: block;
+  position: absolute;
+  z-index: 3;
+  left: var(--fl);
+  top: var(--gy);
+  width: var(--fw);
+  height: 0;
+  pointer-events: none;
+}
+.mob__fx {
+  position: absolute;
+  inset: 0 0 auto;
+  transform: translateY(calc(-50% + (1 - var(--f, 0)) * 28px));
+  opacity: calc((var(--f, 0) - 0.8) * 5);
+  text-align: left;
+}
+.mob__fx-name {
+  margin: 10px 0 0;
+  font-size: var(--step-2);
+  font-weight: 600;
+  line-height: 1.02;
+  letter-spacing: -0.04em;
+  color: var(--text);
+}
+.mob__fx-note {
+  margin: 16px 0 22px;
+  max-width: 26ch;
+  font-size: clamp(1.05rem, 1.5vw, 1.3rem);
+  line-height: 1.45;
+  color: var(--text-dim);
+}
+.mob__fx .chips {
+  justify-content: flex-start;
+}
+
 /* the device: bezel, side keys, glass glare. The screen is the real screenshot (390 x 844).
    Layers (back to front): halo, shadow, ghost, device body (conic-masked while the pen draws), screen, shine. */
 .phone {
@@ -48,7 +127,7 @@
   border-radius: calc(var(--w) * 0.17);
   background: none;
   cursor: pointer;
-  transform: scale(var(--s));
+  transform: var(--tf, ) scale(var(--s));
   transform-origin: center top;
   transition: transform 0.45s var(--ease-out);
   -webkit-tap-highlight-color: transparent;
@@ -253,7 +332,7 @@ html.js:not(.no-pen) .mob.is-armed .is-filled .mob__cap > * {
 
 @media (hover: hover) {
   .phone:hover {
-    transform: scale(var(--s)) translateY(-8px);
+    transform: var(--tf, ) scale(var(--s)) translateY(-8px);
   }
   .phone:hover .phone__shadow {
     box-shadow:
@@ -263,7 +342,7 @@ html.js:not(.no-pen) .mob.is-armed .is-filled .mob__cap > * {
   }
 }
 .phone:active {
-  transform: scale(calc(var(--s) * 0.985));
+  transform: var(--tf, ) scale(calc(var(--s) * 0.985));
 }
 .phone:focus-visible {
   outline: 2px solid var(--focus);
@@ -297,7 +376,7 @@ html.js:not(.no-pen) .mob.is-armed .is-filled .mob__cap > * {
 @media (max-width: 768px) {
   .mob {
     margin-inline: calc(var(--gutter) * -1);
-    --w0: min(66vw, 280px);
+    --w0: min(72vw, 310px);
   }
   .mob__item,
   .mob__item--hero {

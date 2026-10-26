@@ -93,6 +93,8 @@ function traceAnchor(el: HTMLElement, main: HTMLElement, mobile: boolean): { anc
   if (!shapes.length) return null
   const D = mobile ? 0 : Math.max(0, Number(el.dataset.penPin) || 0)
   const T = Number(el.dataset.penPinTop) || 0
+  // extra pinned scroll after the line has left the stage (the phones zoom there); the line waits at the stage's exit
+  const Z = D > 0 ? Math.max(0, Number(el.dataset.penHold) || 0) : 0
   const vh = window.innerHeight
   const gap = Number(el.dataset.penGap)
   const mainTop = main.getBoundingClientRect().top + window.scrollY
@@ -106,9 +108,10 @@ function traceAnchor(el: HTMLElement, main: HTMLElement, mobile: boolean): { anc
   }
   if (D > 0) {
     anchor.pinD = D
+    anchor.pinHold = Z
     anchor.pinKey = rect.y - T + vh * TIP_FRAC
   }
-  return { anchor, pin: D > 0 ? { D, S0: mainTop + rect.y - T } : null }
+  return { anchor, pin: D > 0 ? { D: D + Z, S0: mainTop + rect.y - T } : null }
 }
 
 function readAnchors(main: HTMLElement): { anchors: Anchor[]; pin: Pin | null } {
