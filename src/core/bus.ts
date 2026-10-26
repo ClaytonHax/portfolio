@@ -19,6 +19,10 @@ export interface BusEvents {
   'case:close': void
   /** Layout changed in a way that moves anchors (fonts loaded, images loaded, filter changed). Pen rebuilds its path. */
   'layout:change': void
+  /** A section asks the pen to draw closed outlines (rounded rects, viewport px at call time), one after another. */
+  'pen:trace': { id: string; shapes: { x: number; y: number; w: number; h: number; r: number }[] }
+  /** The pen has finished drawing a `pen:trace`. */
+  'pen:traced': { id: string }
   /** A section has taken over the drawing (e.g. a pinned horizontal chapter). While on, the pen hides its tip and ink. */
   'pen:hold': { on: boolean }
 }

@@ -1,5 +1,5 @@
 import { projects } from '../data/projects'
-import { emit } from '../core/bus'
+import { emit, on } from '../core/bus'
 import { gsap, ScrollTrigger, reducedMotion } from '../core/motion'
 import { reveal } from './reveal'
 import { sectionHead } from './ui'
@@ -60,47 +60,38 @@ export function initMobile(): void {
     ),
   )
 
-  // the pen sketches all three devices first, then the screens and captions fill into the drawn outlines
-  if (!reducedMotion) {
-    const NS = 'http://www.w3.org/2000/svg'
-    const PAD = 7
+  // the pen draws the devices first (its own line, ink tip and all), then the screens and captions fill in
+  if (!reducedMotion && document.documentElement.classList.contains('js') && !document.documentElement.classList.contains('no-pen')) {
     stage.classList.add('is-sketching')
-    const draws = items.map((it) => {
-      const phone = it.querySelector<HTMLElement>('.phone')!
-      const svg = document.createElementNS(NS, 'svg')
-      svg.setAttribute('class', 'phone__draw')
-      svg.setAttribute('aria-hidden', 'true')
-      svg.setAttribute('focusable', 'false')
-      const rect = document.createElementNS(NS, 'rect')
-      rect.setAttribute('pathLength', '1')
-      svg.append(rect)
-      phone.append(svg)
-      gsap.set(rect, { strokeDasharray: 1, strokeDashoffset: 1, opacity: 1 })
-      return { phone, svg, rect }
-    })
+    let started = false
+    let filled = false
     const fill = () => {
+      if (filled) return
+      filled = true
       stage.classList.remove('is-sketching')
-      draws.forEach((d) => d.svg.remove())
     }
+    const trace = () => {
+      if (started) return
+      started = true
+      const vw = window.innerWidth
+      const shapes = items
+        .map((it) => it.querySelector<HTMLElement>('.phone')!.getBoundingClientRect())
+        .filter((r) => r.right > 0 && r.left < vw)
+        .map((r) => ({ x: r.left - 4, y: r.top - 4, w: r.width + 8, h: r.height + 8, r: r.width * 0.17 + 4 }))
+      emit('pen:trace', { id: 'mobile', shapes })
+    }
+    on('pen:traced', ({ id }) => {
+      if (id === 'mobile') window.setTimeout(fill, 150)
+    })
+    on('pen:reach', ({ id }) => {
+      if (id === 'mobile') trace()
+    })
+    // safety net: if the pen never gets here (rewound, deep link), draw anyway once the row is on screen
     ScrollTrigger.create({
       trigger: stage,
-      start: 'top 68%',
+      start: 'top 45%',
       once: true,
-      onEnter: () => {
-        const tl = gsap.timeline({ onComplete: fill })
-        draws.forEach(({ phone, svg, rect }, i) => {
-          const w = phone.offsetWidth
-          const h = phone.offsetHeight
-          svg.setAttribute('viewBox', `${-PAD} ${-PAD} ${w + PAD * 2} ${h + PAD * 2}`)
-          rect.setAttribute('width', String(w))
-          rect.setAttribute('height', String(h))
-          rect.setAttribute('rx', String(w * 0.17))
-          tl.to(rect, { strokeDashoffset: 0, duration: 1.15, ease: 'power2.inOut' }, 0.1 + i * 0.25)
-        })
-        // all three outlines are down: fill them in (CSS transitions), then let the pen strokes fade
-        tl.call(() => stage.classList.remove('is-sketching'), undefined, '+=0.1')
-        tl.to(draws.map((d) => d.rect), { opacity: 0, duration: 0.9, ease: 'power1.out', stagger: 0.12 }, '<')
-      },
+      onEnter: () => window.setTimeout(() => (started ? window.setTimeout(fill, 4500) : (trace(), window.setTimeout(fill, 5500))), 1500),
     })
   }
 

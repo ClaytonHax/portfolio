@@ -88,21 +88,6 @@
   height: 100%;
   object-fit: cover;
 }
-.phone__draw {
-  position: absolute;
-  inset: -7px;
-  width: calc(100% + 14px);
-  height: calc(100% + 14px);
-  overflow: visible;
-  pointer-events: none;
-}
-.phone__draw rect {
-  fill: none;
-  stroke: var(--ink, var(--accent));
-  stroke-width: 3;
-  stroke-linecap: round;
-  filter: var(--ink-glow, none);
-}
 /* while the pen is still sketching, the devices are empty outlines; they fill in once all three are drawn */
 .mob.is-sketching .phone {
   background: transparent;

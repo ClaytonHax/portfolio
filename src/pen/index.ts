@@ -83,7 +83,8 @@ export async function initPen(): Promise<void> {
   jGlow.setAttribute('class', 'pen-glow')
   const jPath = document.createElementNS(NS, 'path')
   jPath.setAttribute('class', 'pen-stroke')
-  art.append(introG, jGlow, jPath)
+  const traceG = document.createElementNS(NS, 'g')
+  art.append(introG, jGlow, jPath, traceG)
   svg.appendChild(art)
   layer.replaceChildren(svg)
 
@@ -111,6 +112,73 @@ export async function initPen(): Promise<void> {
       },
     })
   }
+
+  /* ── outlines a section asks the pen to draw (same ink, glow and tip as the journey line) ── */
+  const roundRectPath = (x: number, y: number, w: number, h: number, r: number) => {
+    r = Math.min(r, w / 2, h / 2)
+    const a = (dx: number, dy: number) => `A ${f(r)} ${f(r)} 0 0 1 ${f(dx)} ${f(dy)}`
+    const f = (n: number) => n.toFixed(1)
+    return `M ${f(x + w / 2)} ${f(y)} H ${f(x + w - r)} ${a(x + w, y + r)} V ${f(y + h - r)} ${a(x + w - r, y + h)} H ${f(x + r)} ${a(x, y + h - r)} V ${f(y + r)} ${a(x + r, y)} Z`
+  }
+  on('pen:trace', ({ id, shapes }) => {
+    if (reducedMotion || !shapes.length) {
+      emit('pen:traced', { id })
+      return
+    }
+    const mr = main!.getBoundingClientRect()
+    const made = shapes.map((sh) => {
+      const d = roundRectPath(sh.x - mr.left, sh.y - mr.top, sh.w, sh.h, sh.r)
+      const glow = document.createElementNS(NS, 'path')
+      glow.setAttribute('class', 'pen-glow')
+      const stroke = document.createElementNS(NS, 'path')
+      stroke.setAttribute('class', 'pen-stroke')
+      for (const el of [glow, stroke]) {
+        el.setAttribute('d', d)
+        el.style.strokeWidth = (el === glow ? baseLw * 4 : baseLw).toFixed(2)
+      }
+      traceG.append(glow, stroke)
+      const len = stroke.getTotalLength()
+      for (const el of [glow, stroke]) {
+        el.style.strokeDasharray = `${len} ${len}`
+        el.style.strokeDashoffset = String(len)
+      }
+      return { glow, stroke, len }
+    })
+    const pt = { v: 0 }
+    const line = gsap.timeline({
+      onComplete: () => {
+        emit('pen:traced', { id })
+        gsap.to(made.flatMap((m) => [m.stroke, m.glow]), {
+          opacity: 0,
+          duration: 1,
+          delay: 0.6,
+          ease: 'power1.out',
+          onComplete: () => traceG.replaceChildren(),
+        })
+      },
+    })
+    made.forEach((m) => {
+      line.set(pt, { v: 0 })
+      line.to(pt, {
+        v: 1,
+        duration: 1.25,
+        ease: 'power2.inOut',
+        onUpdate: () => {
+          const o = m.len * (1 - pt.v)
+          m.stroke.style.strokeDashoffset = m.glow.style.strokeDashoffset = String(o)
+          if (held) return
+          const p = m.stroke.getPointAtLength(m.len * pt.v)
+          ink.tip(p.x, p.y + mainTop)
+        },
+      })
+      line.call(() => {
+        if (!held) {
+          const p = m.stroke.getPointAtLength(0)
+          ink.burst(p.x, p.y + mainTop, 36, 5, 3)
+        }
+      })
+    })
+  })
 
   /* ── state ── */
   type Phase = 'idle' | 'playing' | 'skipping' | 'done'
