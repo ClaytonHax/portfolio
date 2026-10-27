@@ -14,6 +14,8 @@ export interface Project {
   tier: ProjectTier
   year: number
   url?: string
+  /** hide the Visit site button (site stays reachable for the owner, not for visitors) */
+  noVisit?: boolean
   repo?: string
   /** path under /public, e.g. /shots/sabine.webp — may not exist yet, fall back to procedural art */
   image: string
@@ -78,13 +80,33 @@ export const projects: Project[] = [
     ],
     stack: ['React', 'TypeScript', 'Firebase', 'Framer Motion', 'pdf.js'],
     category: 'Web App',
-    tier: 'flagship',
+    tier: 'featured',
     year: 2026,
     url: 'https://hackerthon-six.vercel.app',
     repo: 'https://github.com/ClaytonHax/hackerthon',
     image: '/shots/pathway.webp',
     badge: '1st place',
     accent: '#ff3b6b',
+  },
+  {
+    id: 'layerzim',
+    title: 'Layerzim',
+    tagline: "Harare's 3D printing service: prototypes, production parts and architectural models.",
+    description:
+      'A fast, search-optimised website for a local FDM 3D printing business. Service pages for rapid prototyping, production parts and architectural models, a materials guide, portfolio, pricing and blog, with quotes and enquiries going straight to WhatsApp.',
+    highlights: [
+      'Service, materials, portfolio and pricing pages',
+      'Local SEO: structured data, canonical URLs, social cards',
+      'One-tap WhatsApp enquiries',
+      'Quotes within 24 hours',
+    ],
+    stack: ['HTML', 'Tailwind', 'JavaScript', 'Schema.org'],
+    category: 'Website',
+    tier: 'flagship',
+    year: 2026,
+    url: 'https://layerzim.co.zw',
+    image: '/shots/layerzim.webp',
+    accent: '#22d3ee',
   },
   {
     id: 'lapel',
@@ -122,6 +144,7 @@ export const projects: Project[] = [
     category: 'Web App',
     tier: 'more',
     year: 2026,
+    noVisit: true,
     url: 'https://sjet-rm.vercel.app',
     image: '/shots/sjet-rm.webp',
     accent: '#e5252a',
@@ -212,6 +235,7 @@ export const projects: Project[] = [
     category: 'Web App',
     tier: 'more',
     year: 2026,
+    noVisit: true,
     url: 'https://sjet-lp.vercel.app',
     repo: 'https://github.com/ClaytonHax/SJET-LP',
     image: '/shots/sjet-lp.webp',

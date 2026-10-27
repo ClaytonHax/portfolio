@@ -58,7 +58,7 @@ export function initCase(): void {
   function render(p: Project, c: CaseStudy | undefined): string {
     const sm = p.image.replace(/\.webp$/, '-sm.webp')
     const links = [
-      p.url ? `<a class="case__btn case__btn--primary" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Visit site ${ICON.out}</a>` : '',
+      p.url && !p.noVisit ? `<a class="case__btn case__btn--primary" href="${esc(p.url)}" target="_blank" rel="noopener noreferrer">Visit site ${ICON.out}</a>` : '',
       p.repo ? `<a class="case__btn" href="${esc(p.repo)}" target="_blank" rel="noopener noreferrer">Code ${ICON.out}</a>` : '',
     ].join('')
     const built = c?.built?.length ? c.built : p.highlights

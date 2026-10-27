@@ -37,6 +37,7 @@ const targets = {
   simon: live('https://www.asksimon.co.zw'),
   'sjet-rm': live('https://sjet-rm.vercel.app'),
   gym: live('https://clayton-gym.vercel.app'),
+  layerzim: live('https://layerzim.co.zw'),
   pathway: live('https://hackerthon-six.vercel.app'),
   'stop-mildew': live('https://stopmildew.co.za'),
   'sjet-lp': live('https://sjet-lp.vercel.app'),

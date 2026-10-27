@@ -32,7 +32,7 @@ export function initWork(): void {
             <ul class="chips" aria-label="Stack">${p.stack.map((s) => `<li class="chip">${s}</li>`).join('')}</ul>
             <div class="card__actions">
               <button type="button" class="btn btn--primary" data-open="${p.id}">Read case study</button>
-              ${p.url ? `<a class="btn btn--ghost" href="${p.url}" target="_blank" rel="noopener noreferrer">Visit site ${icons.arrowUpRight}<span class="sr-only"> (opens in a new tab)</span></a>` : ''}
+              ${p.url && !p.noVisit ? `<a class="btn btn--ghost" href="${p.url}" target="_blank" rel="noopener noreferrer">Visit site ${icons.arrowUpRight}<span class="sr-only"> (opens in a new tab)</span></a>` : ''}
               ${p.repo ? `<a class="btn btn--ghost" href="${p.repo}" target="_blank" rel="noopener noreferrer">Code ${icons.arrowUpRight}<span class="sr-only"> (opens in a new tab)</span></a>` : ''}
             </div>
           </div>

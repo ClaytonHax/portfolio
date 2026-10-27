@@ -8,7 +8,7 @@ import { sectionHead } from './ui'
 const APPS: { id: string; note: string; feats: string[] }[] = [
   { id: 'gym', note: 'Log the set, keep the streak.', feats: ['Home-screen install', 'Streaks & heatmap'] },
   { id: 'lapel', note: 'Ask what to wear. It dresses you from your own wardrobe.', feats: ['Installable PWA', 'Offline page', 'Weather-aware'] },
-  { id: 'pathway', note: 'Jobs and learnerships, one thumb at a time.', feats: ['Thumb-first cards', 'Match scoring'] },
+  { id: 'pathway', note: 'Won first prize at the Arundel hackathon. Jobs and learnerships, one thumb at a time.', feats: ['1st prize', 'Thumb-first cards', 'Match scoring'] },
 ]
 
 export function initMobile(): void {
