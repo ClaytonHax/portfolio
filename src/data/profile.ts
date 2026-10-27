@@ -6,8 +6,7 @@ export const profile = {
   email: 'claytbzim@gmail.com',
   github: 'https://github.com/ClaytonHax',
   leetcode: 'https://leetcode.com/u/ClaytonHax',
-  // TODO(clayton): replace with your exact profile URL (couldn't find it via public search)
-  linkedin: 'https://www.linkedin.com/search/results/people/?keywords=Clayton%20Banks',
+  linkedin: 'https://www.linkedin.com/in/claytondavidbanks/',
   tagline: 'I turn messy, real-world problems into fast, powerful apps people actually use.',
   aboutHeading: 'Problem first. Code second.',
   about: [
