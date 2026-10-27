@@ -18,6 +18,7 @@ export function initContact(): void {
           <div class="contact__actions rvc" style="--i:4">
             <button type="button" class="btn btn--primary" data-copy>${icons.copy}<span>Copy email</span></button>
             <a class="btn btn--ghost" href="${profile.github}" target="_blank" rel="noopener noreferrer">${icons.github}GitHub<span class="sr-only"> (opens in a new tab)</span></a>
+            <a class="btn btn--ghost" href="${profile.leetcode}" target="_blank" rel="noopener noreferrer">${icons.leetcode}LeetCode<span class="sr-only"> (opens in a new tab)</span></a>
             <a class="btn btn--ghost" href="${profile.linkedin}" target="_blank" rel="noopener noreferrer">${icons.linkedin}LinkedIn<span class="sr-only"> (opens in a new tab)</span></a>
           </div>
         </div>
